@@ -111,7 +111,7 @@ export default function Board({ guesses, evaluations, currentGuess, rows = 6, co
           {row.map((cell, c) => {
             const rotateX = flipAnimsRef.current[r][c].interpolate({
               inputRange: [0, 1],
-              outputRange: ['0deg', '60deg'],
+              outputRange: ['0deg', '180deg'],
             });
             const key = `${r}-${c}`;
             return (
