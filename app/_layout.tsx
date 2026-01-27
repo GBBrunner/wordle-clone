@@ -11,16 +11,14 @@ import { UserIcon } from "@/components/ui/user-icon";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
-export const unstable_settings = {
-  anchor: "(tabs)",
-};
+// Removed anchor to tabs; focusing app on Wordle screen.
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Stack>
+      <Stack initialRouteName="index">
         <Stack.Screen
           name="index"
           options={{
@@ -30,11 +28,11 @@ export default function RootLayout() {
             ),
           }}
         />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
           name="wordle"
           options={{
             title: "Wordle",
+            // Enable default back arrow to previous screen (Home)
             headerRight: () => (
               <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
             ),
