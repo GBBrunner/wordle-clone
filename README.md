@@ -48,3 +48,10 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Vercel Deployment
+
+- Build: `npm run build` generates a static web export in `dist`.
+- Auto-deploy on commit (recommended): connect the GitHub repo to Vercel, set the Production Branch (e.g., `main`), and add your custom domain in the Vercel project settings. Vercel will automatically alias your domain to the latest production deployment after each push.
+- Optional GitHub Actions: see `.github/workflows/vercel-deploy.yml` for CI-driven deploys. Set GitHub repository secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`.
+- Custom Domain: add your domain in Vercel → Project → Domains. For branch subdomains, configure a wildcard DNS `*.yourdomain.com` pointing to Vercel.

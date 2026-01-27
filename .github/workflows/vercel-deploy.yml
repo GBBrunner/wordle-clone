@@ -1,0 +1,36 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  preview:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npm run build
+      - name: Deploy Preview to Vercel
+        run: npx vercel --token "${{ secrets.VERCEL_TOKEN }}" --org "${{ secrets.VERCEL_ORG_ID }}" --project "${{ secrets.VERCEL_PROJECT_ID }}"
+
+  production:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npm run build
+      - name: Deploy Production to Vercel
+        run: npx vercel --prod --confirm --token "${{ secrets.VERCEL_TOKEN }}" --org "${{ secrets.VERCEL_ORG_ID }}" --project "${{ secrets.VERCEL_PROJECT_ID }}"
