@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 const ROWS = [
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
   ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
-  ["A change v5", "Z", "X", "C", "V", "B", "N", "M", "DEL"],
+  ["A change v6", "Z", "X", "C", "V", "B", "N", "M", "DEL"],
 ];
 
 type Props = {
