@@ -25,9 +25,9 @@ export default function RootLayout() {
           name="index"
           options={{
             title: "Home",
-                  headerRight: () => (
-                    <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
-                  ),
+            headerRight: () => (
+              <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
+            ),
           }}
         />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -35,9 +35,9 @@ export default function RootLayout() {
           name="wordle"
           options={{
             title: "Wordle",
-                  headerRight: () => (
-                    <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
-                  ),
+            headerRight: () => (
+              <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
+            ),
           }}
         />
         <Stack.Screen
