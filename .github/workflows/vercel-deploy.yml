@@ -18,10 +18,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - name: Link Vercel project (preview)
+        run: npx vercel pull --yes --environment=preview --token "${{ secrets.VERCEL_TOKEN }}" --project "${{ secrets.VERCEL_PROJECT_ID }}"
       - run: npm ci
       - run: npm run build
-      - name: Deploy Preview to Vercel (upload dist)
-        run: npx vercel dist --token "${{ secrets.VERCEL_TOKEN }}" --scope "${{ secrets.VERCEL_ORG_ID }}" --project "${{ secrets.VERCEL_PROJECT_ID }}"
+      - name: Deploy Preview to Vercel
+        run: npx vercel --token "${{ secrets.VERCEL_TOKEN }}" --project "${{ secrets.VERCEL_PROJECT_ID }}"
 
   production:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
@@ -31,7 +33,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+      - name: Link Vercel project (production)
+        run: npx vercel pull --yes --environment=production --token "${{ secrets.VERCEL_TOKEN }}" --project "${{ secrets.VERCEL_PROJECT_ID }}"
       - run: npm ci
       - run: npm run build
-      - name: Deploy Production to Vercel (upload dist)
-        run: npx vercel dist --prod --confirm --token "${{ secrets.VERCEL_TOKEN }}" --scope "${{ secrets.VERCEL_ORG_ID }}" --project "${{ secrets.VERCEL_PROJECT_ID }}"
+      - name: Deploy Production to Vercel
+        run: npx vercel --prod --confirm --token "${{ secrets.VERCEL_TOKEN }}" --project "${{ secrets.VERCEL_PROJECT_ID }}"
