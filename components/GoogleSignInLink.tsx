@@ -1,8 +1,9 @@
+import * as Linking from "expo-linking";
 import React from "react";
 import { Platform, Pressable, StyleSheet, Text } from "react-native";
-import * as Linking from "expo-linking";
 // Web-only Google icon from react-icons (conditionally required to avoid native bundling issues)
-const WebGoogleIcon = Platform.OS === "web" ? require("react-icons/fc").FcGoogle : null;
+const WebGoogleIcon =
+  Platform.OS === "web" ? require("react-icons/fc").FcGoogle : null;
 // Native fallback icon
 import { AntDesign } from "@expo/vector-icons";
 
@@ -35,7 +36,8 @@ export default function GoogleSignInLink() {
   if (!authUrl) {
     return (
       <Text style={styles.error}>
-        Missing Google OAuth env vars. Set `GOOGLE_CLIENT_ID` and `GOOGLE_REDIRECT_URI`.
+        Missing Google OAuth env vars. Set `GOOGLE_CLIENT_ID` and
+        `GOOGLE_REDIRECT_URI`.
       </Text>
     );
   }
@@ -53,7 +55,12 @@ export default function GoogleSignInLink() {
 
   return (
     <Pressable style={styles.button} onPress={() => Linking.openURL(authUrl)}>
-      <AntDesign name="google" size={18} color="#121212" style={{ marginRight: 8 }} />
+      <AntDesign
+        name="google"
+        size={18}
+        color="#121212"
+        style={{ marginRight: 8 }}
+      />
       <Text style={styles.buttonText}>Sign in with Google</Text>
     </Pressable>
   );
