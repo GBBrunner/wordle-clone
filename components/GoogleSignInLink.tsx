@@ -7,12 +7,28 @@ const WebGoogleIcon =
 // Native fallback icon
 import { AntDesign } from "@expo/vector-icons";
 
-function buildGoogleAuthUrl() {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const redirectUri =
-    process.env.NODE_ENV === "development"
-      ? process.env.GOOGLE_REDIRECT_DEV_URI || process.env.GOOGLE_REDIRECT_URI
-      : process.env.GOOGLE_REDIRECT_URI;
+function randomState() {
+  if (Platform.OS === "web" && typeof window !== "undefined" && window.crypto?.getRandomValues) {
+    const bytes = new Uint8Array(16);
+    window.crypto.getRandomValues(bytes);
+    return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+  return String(Date.now());
+}
+
+function buildGoogleAuthUrl(state?: string) {
+  const clientId =
+    process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+  const isDev = process.env.NODE_ENV === "development";
+  const webOrigin = Platform.OS === "web" && typeof window !== "undefined" ? window.location.origin : undefined;
+  const redirectUri = isDev
+    ? webOrigin
+      ? `${webOrigin}/api/auth/callback/google`
+      : process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_DEV_URI ||
+        process.env.GOOGLE_REDIRECT_DEV_URI ||
+        process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI ||
+        process.env.GOOGLE_REDIRECT_URI
+    : process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI || process.env.GOOGLE_REDIRECT_URI;
 
   if (!clientId || !redirectUri) return null;
 
@@ -25,7 +41,8 @@ function buildGoogleAuthUrl() {
     `&response_type=code` +
     `&scope=${scope}` +
     `&access_type=offline` +
-    `&prompt=consent`;
+    `&prompt=consent` +
+    (state ? `&state=${encodeURIComponent(state)}` : "");
 
   return url;
 }
@@ -43,13 +60,20 @@ export default function GoogleSignInLink() {
   }
 
   if (Platform.OS === "web") {
+    const handleClick = () => {
+      const state = randomState();
+      // Store state in a cookie for server-side validation
+      document.cookie = `oauth_state=${state}; Path=/; SameSite=Lax`;
+      const urlWithState = buildGoogleAuthUrl(state);
+      window.location.href = urlWithState!;
+    };
     return (
-      <a href={authUrl} style={styles.webAnchor as any}>
+      <button onClick={handleClick} style={styles.webAnchor as any}>
         <span style={styles.iconWrap as any}>
           {WebGoogleIcon ? <WebGoogleIcon size={20} /> : null}
         </span>
         <span style={styles.label as any}>Sign in with Google</span>
-      </a>
+      </button>
     );
   }
 
