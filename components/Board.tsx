@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
-import type { Evaluation } from '../lib/wordle/engine';
+import React, { useEffect, useRef, useState } from "react";
+import { Animated, Easing, StyleSheet, Text, View } from "react-native";
+import type { Evaluation } from "../lib/wordle/engine";
 
 type Props = {
   guesses: string[];
@@ -10,44 +10,72 @@ type Props = {
   cols?: number;
 };
 
-export default function Board({ guesses, evaluations, currentGuess, rows = 6, cols = 5 }: Props) {
-  const grid: { char: string; state: 'empty' | 'filled'; eval?: Evaluation[number] }[][] = [];
+export default function Board({
+  guesses,
+  evaluations,
+  currentGuess,
+  rows = 6,
+  cols = 5,
+}: Props) {
+  const grid: {
+    char: string;
+    state: "empty" | "filled";
+    eval?: Evaluation[number];
+  }[][] = [];
 
   // Animated values per cell
   const scaleAnimsRef = useRef<Animated.Value[][]>([]);
-  const flipAnimsRef = useRef<Animated.Value[][]>([]); // 0 -> 1 mapped to rotateX
+  const flipAnimsRef = useRef<Animated.Value[][]>([]); // 0 -> 1 mapped to rotateY
   const [revealedMap, setRevealedMap] = useState<Record<string, boolean>>({});
 
   // Ensure animation matrix size
   if (scaleAnimsRef.current.length !== rows) {
     scaleAnimsRef.current = Array.from({ length: rows }, () =>
-      Array.from({ length: cols }, () => new Animated.Value(1))
+      Array.from({ length: cols }, () => new Animated.Value(1)),
     );
   } else {
     for (let r = 0; r < rows; r++) {
-      if (!scaleAnimsRef.current[r] || scaleAnimsRef.current[r].length !== cols) {
-        scaleAnimsRef.current[r] = Array.from({ length: cols }, () => new Animated.Value(1));
+      if (
+        !scaleAnimsRef.current[r] ||
+        scaleAnimsRef.current[r].length !== cols
+      ) {
+        scaleAnimsRef.current[r] = Array.from(
+          { length: cols },
+          () => new Animated.Value(1),
+        );
       }
     }
   }
   if (flipAnimsRef.current.length !== rows) {
     flipAnimsRef.current = Array.from({ length: rows }, () =>
-      Array.from({ length: cols }, () => new Animated.Value(0))
+      Array.from({ length: cols }, () => new Animated.Value(0)),
     );
   } else {
     for (let r = 0; r < rows; r++) {
       if (!flipAnimsRef.current[r] || flipAnimsRef.current[r].length !== cols) {
-        flipAnimsRef.current[r] = Array.from({ length: cols }, () => new Animated.Value(0));
+        flipAnimsRef.current[r] = Array.from(
+          { length: cols },
+          () => new Animated.Value(0),
+        );
       }
     }
   }
   for (let r = 0; r < rows; r++) {
-    const row: { char: string; state: 'empty' | 'filled'; eval?: Evaluation[number] }[] = [];
-    const guess = r < guesses.length ? guesses[r] : r === guesses.length ? currentGuess : '';
+    const row: {
+      char: string;
+      state: "empty" | "filled";
+      eval?: Evaluation[number];
+    }[] = [];
+    const guess =
+      r < guesses.length
+        ? guesses[r]
+        : r === guesses.length
+          ? currentGuess
+          : "";
     const evalRow = r < evaluations.length ? evaluations[r] : undefined;
     for (let c = 0; c < cols; c++) {
-      const char = guess[c]?.toUpperCase() ?? '';
-      const state = char ? 'filled' : 'empty';
+      const char = guess[c]?.toUpperCase() ?? "";
+      const state = char ? "filled" : "empty";
       const cellEval = evalRow ? evalRow[c] : undefined;
       row.push({ char, state, eval: cellEval });
     }
@@ -109,9 +137,9 @@ export default function Board({ guesses, evaluations, currentGuess, rows = 6, co
       {grid.map((row, r) => (
         <View key={r} style={styles.row}>
           {row.map((cell, c) => {
-            const rotateX = flipAnimsRef.current[r][c].interpolate({
+            const rotateY = flipAnimsRef.current[r][c].interpolate({
               inputRange: [0, 1],
-              outputRange: ['0deg', '180deg'],
+              outputRange: ["0deg", "180deg"],
             });
             const key = `${r}-${c}`;
             return (
@@ -125,7 +153,7 @@ export default function Board({ guesses, evaluations, currentGuess, rows = 6, co
                   {
                     transform: [
                       { perspective: 600 },
-                      { rotateX },
+                      { rotateY },
                       { scale: scaleAnimsRef.current[r][c] },
                     ],
                   },
@@ -143,21 +171,20 @@ export default function Board({ guesses, evaluations, currentGuess, rows = 6, co
 
 const styles = StyleSheet.create({
   board: { gap: 8, paddingVertical: 12 },
-  row: { flexDirection: 'row', gap: 8 },
+  row: { flexDirection: "row", gap: 8 },
   cell: {
     width: 48,
     height: 48,
     borderWidth: 2,
-    borderColor: '#444',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#111',
+    borderColor: "#444",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#111",
   },
-  cellText: { color: '#fff', fontSize: 22, fontWeight: '700' },
+  cellText: { color: "#fff", fontSize: 22, fontWeight: "700" },
   empty: {},
-  filled: { borderColor: '#888' },
-  correct: { backgroundColor: '#6aaa64', borderColor: '#6aaa64' },
-  present: { backgroundColor: '#c9b458', borderColor: '#c9b458' },
-  absent: { backgroundColor: '#3a3a3c', borderColor: '#3a3a3c' },
-  
+  filled: { borderColor: "#888" },
+  correct: { backgroundColor: "#6aaa64", borderColor: "#6aaa64" },
+  present: { backgroundColor: "#c9b458", borderColor: "#c9b458" },
+  absent: { backgroundColor: "#3a3a3c", borderColor: "#3a3a3c" },
 });
