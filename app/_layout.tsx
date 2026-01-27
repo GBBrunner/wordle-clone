@@ -3,13 +3,14 @@ import {
     DefaultTheme,
     ThemeProvider,
 } from "@react-navigation/native";
-import { Stack } from "expo-router";
+import { Link, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 
 import { UserIcon } from "@/components/ui/user-icon";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { Pressable } from "react-native";
 
 // Removed anchor to tabs; focusing app on Wordle screen.
 
@@ -24,7 +25,11 @@ export default function RootLayout() {
           options={{
             title: "Home",
             headerRight: () => (
-              <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
+              <Link href="/login" asChild>
+                <Pressable accessibilityRole="button" hitSlop={8}>
+                  <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
+                </Pressable>
+              </Link>
             ),
           }}
         />
@@ -34,7 +39,11 @@ export default function RootLayout() {
             title: "Wordle",
             // Enable default back arrow to previous screen (Home)
             headerRight: () => (
-              <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
+              <Link href="/login" asChild>
+                <Pressable accessibilityRole="button" hitSlop={8}>
+                  <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
+                </Pressable>
+              </Link>
             ),
           }}
         />
