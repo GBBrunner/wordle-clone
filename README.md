@@ -76,4 +76,12 @@ npx vercel --prod --confirm
 
 These scripts load `VERCEL_TOKEN` from `.env.local` using `dotenv-cli` and run Vercel from the project root. Ensure you’ve run `vercel login` at least once to link the project, or keep `.vercel/project.json` checked in.
 
+### Commit-based deploys (recommended)
+
+- Push to `main`: GitHub Actions runs and deploys to production automatically.
+- PRs to `main`: a preview deployment is created.
+- Required setup once:
+   - Add repository secret `VERCEL_TOKEN`.
+   - Ensure `.vercel/project.json` is in the repo (we now keep `.vercel` tracked) so the workflow is linked to the correct Vercel project.
+
 Make sure your Vercel project is linked to this repo/project and that the GitHub secrets are set. `vercel.json` already tells Vercel to use `npm run build` and serve `dist`.

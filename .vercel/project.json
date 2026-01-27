@@ -1,0 +1,16 @@
+{
+  "projectId": "prj_d4k2sLzLu1wj2MsFATHvl3PkCsdl",
+  "orgId": "team_AHy2wPnIOxqs4Qz4AjZll5Vd",
+  "projectName": "wordle-clone-vercel",
+  "settings": {
+    "createdAt": 1769537001644,
+    "framework": null,
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": null,
+    "directoryListing": false,
+    "nodeVersion": "24.x"
+  }
+}
