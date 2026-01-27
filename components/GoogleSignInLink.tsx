@@ -8,10 +8,16 @@ const WebGoogleIcon =
 import { AntDesign } from "@expo/vector-icons";
 
 function randomState() {
-  if (Platform.OS === "web" && typeof window !== "undefined" && window.crypto?.getRandomValues) {
+  if (
+    Platform.OS === "web" &&
+    typeof window !== "undefined" &&
+    window.crypto?.getRandomValues
+  ) {
     const bytes = new Uint8Array(16);
     window.crypto.getRandomValues(bytes);
-    return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+    return Array.from(bytes)
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
   }
   return String(Date.now());
 }
@@ -20,7 +26,10 @@ function buildGoogleAuthUrl(state?: string) {
   const clientId =
     process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
   const isDev = process.env.NODE_ENV === "development";
-  const webOrigin = Platform.OS === "web" && typeof window !== "undefined" ? window.location.origin : undefined;
+  const webOrigin =
+    Platform.OS === "web" && typeof window !== "undefined"
+      ? window.location.origin
+      : undefined;
   const redirectUri = isDev
     ? webOrigin
       ? `${webOrigin}/api/auth/callback/google`
@@ -28,7 +37,8 @@ function buildGoogleAuthUrl(state?: string) {
         process.env.GOOGLE_REDIRECT_DEV_URI ||
         process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI ||
         process.env.GOOGLE_REDIRECT_URI
-    : process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI || process.env.GOOGLE_REDIRECT_URI;
+    : process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI ||
+      process.env.GOOGLE_REDIRECT_URI;
 
   if (!clientId || !redirectUri) return null;
 

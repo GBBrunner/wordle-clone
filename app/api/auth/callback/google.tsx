@@ -1,9 +1,13 @@
+import { useLocalSearchParams } from "expo-router";
 import React from "react";
 import { SafeAreaView, StyleSheet, Text, View } from "react-native";
-import { useLocalSearchParams } from "expo-router";
 
 export default function GoogleCallback() {
-  const params = useLocalSearchParams<{ code?: string; error?: string; state?: string }>();
+  const params = useLocalSearchParams<{
+    code?: string;
+    error?: string;
+    state?: string;
+  }>();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -12,11 +16,15 @@ export default function GoogleCallback() {
         {params.error ? (
           <Text style={styles.error}>Error: {String(params.error)}</Text>
         ) : params.code ? (
-          <Text style={styles.subtitle}>Code received: {String(params.code)}</Text>
+          <Text style={styles.subtitle}>
+            Code received: {String(params.code)}
+          </Text>
         ) : (
           <Text style={styles.subtitle}>No code provided.</Text>
         )}
-        <Text style={styles.note}>Implement server-side token exchange to complete login.</Text>
+        <Text style={styles.note}>
+          Implement server-side token exchange to complete login.
+        </Text>
       </View>
     </SafeAreaView>
   );

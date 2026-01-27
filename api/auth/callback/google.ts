@@ -12,7 +12,9 @@ export default async function handler(req: any, res: any) {
   const error = req.query.error as string | undefined;
 
   if (error) {
-    res.status(302).setHeader("Location", `/login?error=${encodeURIComponent(error)}`);
+    res
+      .status(302)
+      .setHeader("Location", `/login?error=${encodeURIComponent(error)}`);
     res.end();
     return;
   }
@@ -23,30 +25,48 @@ export default async function handler(req: any, res: any) {
   }
 
   // Validate OAuth state to mitigate CSRF
-  const cookieHeader = (req.headers["cookie"] || req.headers["Cookie"]) as string | undefined;
-  const cookieState = cookieHeader?.split(/;\s*/).find((c: string) => c.startsWith("oauth_state="))?.split("=")[1];
+  const cookieHeader = (req.headers["cookie"] || req.headers["Cookie"]) as
+    | string
+    | undefined;
+  const cookieState = cookieHeader
+    ?.split(/;\s*/)
+    .find((c: string) => c.startsWith("oauth_state="))
+    ?.split("=")[1];
   if (!state || !cookieState || state !== cookieState) {
-    res.status(302).setHeader("Location", `/login?error=${encodeURIComponent("invalid_state")}`);
+    res
+      .status(302)
+      .setHeader(
+        "Location",
+        `/login?error=${encodeURIComponent("invalid_state")}`,
+      );
     res.end();
     return;
   }
 
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  let redirectUri = process.env.GOOGLE_REDIRECT_URI || process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI;
+  let redirectUri =
+    process.env.GOOGLE_REDIRECT_URI ||
+    process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI;
 
   // Fallback: derive origin-based redirect for preview deployments
   if (!redirectUri) {
-    const host = (req.headers["x-forwarded-host"] || req.headers.host) as string;
+    const host = (req.headers["x-forwarded-host"] ||
+      req.headers.host) as string;
     const proto = (req.headers["x-forwarded-proto"] || "https") as string;
     const origin = `${proto}://${host}`;
     redirectUri = `${origin}/api/auth/callback/google`;
   }
 
   if (!clientId || !clientSecret || !redirectUri) {
-    res.status(500).json({ error: "server_env_missing", missing: {
-      clientId: !clientId, clientSecret: !clientSecret, redirectUri: !redirectUri
-    }});
+    res.status(500).json({
+      error: "server_env_missing",
+      missing: {
+        clientId: !clientId,
+        clientSecret: !clientSecret,
+        redirectUri: !redirectUri,
+      },
+    });
     return;
   }
 
@@ -65,7 +85,12 @@ export default async function handler(req: any, res: any) {
 
     if (!tokenRes.ok) {
       const text = await tokenRes.text();
-      res.status(302).setHeader("Location", `/login?error=${encodeURIComponent("token_exchange_failed")}`);
+      res
+        .status(302)
+        .setHeader(
+          "Location",
+          `/login?error=${encodeURIComponent("token_exchange_failed")}`,
+        );
       res.setHeader("X-Error-Detail", text);
       res.end();
       return;
@@ -77,9 +102,12 @@ export default async function handler(req: any, res: any) {
     // Optional: fetch basic profile (email, name)
     let profile: any = null;
     if (accessToken) {
-      const profRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
+      const profRes = await fetch(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      );
       if (profRes.ok) profile = await profRes.json();
     }
 
@@ -96,10 +124,17 @@ export default async function handler(req: any, res: any) {
 
     // Redirect into the app; pass display name via query (non-sensitive)
     const display = profile?.name || profile?.email || "User";
-    res.status(302).setHeader("Location", `/dashboard?user=${encodeURIComponent(display)}`);
+    res
+      .status(302)
+      .setHeader("Location", `/dashboard?user=${encodeURIComponent(display)}`);
     res.end();
   } catch (e: any) {
-    res.status(302).setHeader("Location", `/login?error=${encodeURIComponent("unexpected_error")}`);
+    res
+      .status(302)
+      .setHeader(
+        "Location",
+        `/login?error=${encodeURIComponent("unexpected_error")}`,
+      );
     res.setHeader("X-Error", String(e?.message || e));
     res.end();
   }
