@@ -27,7 +27,10 @@ export default function RootLayout() {
             headerRight: () => (
               <Link href="/login" asChild>
                 <Pressable accessibilityRole="button" hitSlop={8}>
-                  <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
+                  <UserIcon
+                    size={32}
+                    color={Colors[colorScheme ?? "light"].tint}
+                  />
                 </Pressable>
               </Link>
             ),
@@ -41,7 +44,10 @@ export default function RootLayout() {
             headerRight: () => (
               <Link href="/login" asChild>
                 <Pressable accessibilityRole="button" hitSlop={8}>
-                  <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
+                  <UserIcon
+                    size={32}
+                    color={Colors[colorScheme ?? "light"].tint}
+                  />
                 </Pressable>
               </Link>
             ),
