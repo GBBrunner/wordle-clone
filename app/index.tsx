@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, TextInput, Platform, Pressable } from 'react-native';
 import Board from '../components/Board';
 import Keyboard from '../components/Keyboard';
-import { ALLOWED_GUESSES, WORDS } from '../data/words';
+import { getAllowedGuessesSet, getWordsForLength } from '../data/words';
 import { evaluateGuess, getDailyWord, randomWord, isValidGuess } from '../lib/wordle/engine';
 
-const WORD_LEN = 5;
+const DAILY_WORD_LEN = 5;
 const MAX_ROWS = 6;
 const BASE_DATE = new Date('2021-06-19'); // Adjustable base date
 
@@ -13,6 +13,7 @@ type Mode = 'daily' | 'endless';
 
 export default function Home() {
   const [mode, setMode] = useState<Mode>('daily');
+  const [endlessLen, setEndlessLen] = useState<number>(5);
   const [secret, setSecret] = useState<string>('');
   const [guesses, setGuesses] = useState<string[]>([]);
   const [evaluations, setEvaluations] = useState<ReturnType<typeof evaluateGuess>[]>([]);
@@ -23,11 +24,12 @@ export default function Home() {
 
   useEffect(() => {
     (async () => {
-      const word = mode === 'daily' ? await getDailyWord(WORDS, BASE_DATE) : randomWord(WORDS);
+      const words = mode === 'daily' ? getWordsForLength(DAILY_WORD_LEN) : getWordsForLength(endlessLen);
+      const word = mode === 'daily' ? await getDailyWord(words, BASE_DATE) : randomWord(words);
       setSecret(word);
       resetGameState();
     })();
-  }, [mode]);
+  }, [mode, endlessLen]);
 
   useEffect(() => {
     const handler = (e: any) => {
@@ -51,18 +53,24 @@ export default function Home() {
     setKeyStates({});
   }
 
+  function currentLen() {
+    return mode === 'daily' ? DAILY_WORD_LEN : endlessLen;
+  }
+
   function onKey(key: string) {
     if (done) return;
     if (key === 'ENTER') return submitGuess();
     if (key === 'DEL') return setCurrent((s) => s.slice(0, -1));
     if (/^[A-Z]$/.test(key)) {
-      setCurrent((s) => (s.length < WORD_LEN ? s + key.toLowerCase() : s));
+      setCurrent((s) => (s.length < currentLen() ? s + key.toLowerCase() : s));
     }
   }
 
   function submitGuess() {
-    if (current.length !== WORD_LEN) return setMessage('Not enough letters');
-    if (!ALLOWED_GUESSES.has(current)) return setMessage('Not in word list');
+    const len = currentLen();
+    const allowed = getAllowedGuessesSet(len);
+    if (current.length !== len) return setMessage('Not enough letters');
+    if (!allowed.has(current)) return setMessage('Not in word list');
     const evalRow = evaluateGuess(secret, current);
     setGuesses((g) => [...g, current]);
     setEvaluations((e) => [...e, evalRow]);
@@ -72,7 +80,7 @@ export default function Home() {
     // Update keyboard states conservatively
     setKeyStates((ks) => {
       const next = { ...ks };
-      for (let i = 0; i < WORD_LEN; i++) {
+      for (let i = 0; i < len; i++) {
         const ch = current[i];
         const prev = next[ch];
         const now = evalRow[i];
@@ -97,7 +105,8 @@ export default function Home() {
   }
 
   function newEndlessGame() {
-    setSecret(randomWord(WORDS));
+    const words = getWordsForLength(endlessLen);
+    setSecret(randomWord(words));
     resetGameState();
   }
 
@@ -113,10 +122,23 @@ export default function Home() {
             <Text style={styles.modeText}>Endless</Text>
           </Pressable>
         </View>
+        {mode === 'endless' && (
+          <View style={styles.lenRow}>
+            {[4,5,6].map((len) => (
+              <Pressable
+                key={len}
+                onPress={() => setEndlessLen(len)}
+                style={[styles.lenBtn, endlessLen===len && styles.lenActive]}
+              >
+                <Text style={styles.modeText}>{len} Letters</Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
       </View>
 
       <View style={styles.boardWrap}>
-        <Board guesses={guesses} evaluations={evaluations} currentGuess={current} />
+        <Board guesses={guesses} evaluations={evaluations} currentGuess={current} cols={currentLen()} />
       </View>
 
       {!!message && <Text style={styles.message}>{message}</Text>}
@@ -152,6 +174,9 @@ const styles = StyleSheet.create({
   modeBtn: { backgroundColor: '#3a3a3c', borderRadius: 6, paddingHorizontal: 12, paddingVertical: 8 },
   modeActive: { backgroundColor: '#6aaa64' },
   modeText: { color: '#fff', fontWeight: '700' },
+  lenRow: { flexDirection: 'row', gap: 6, marginTop: 8 },
+  lenBtn: { backgroundColor: '#3a3a3c', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 6 },
+  lenActive: { backgroundColor: '#c9b458' },
   boardWrap: { alignItems: 'center' },
   message: { color: '#fff', textAlign: 'center' },
   cta: { backgroundColor: '#6aaa64', borderRadius: 6, padding: 12, alignItems: 'center' },

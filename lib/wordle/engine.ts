@@ -32,8 +32,9 @@ export function evaluateGuess(secret: string, guess: string): Evaluation {
   return res;
 }
 
-export function isValidGuess(word: string) {
-  return /^[a-zA-Z]{5}$/.test(word);
+export function isValidGuess(word: string, len: number) {
+  const re = new RegExp(`^[a-zA-Z]{${len}}$`);
+  return re.test(word);
 }
 
 export function getDailyIndex(baseDate: Date, words: string[], today = new Date()): number {
@@ -53,7 +54,7 @@ export async function getDailyWord(words: string[], baseDate: Date): Promise<str
       const resp = await fetch(url);
       if (resp.ok) {
         const text = (await resp.text()).trim().toLowerCase();
-        if (isValidGuess(text)) return text;
+        if (isValidGuess(text, words[0]?.length ?? 5)) return text;
       }
     } catch (e) {
       // fall back to local algorithm
