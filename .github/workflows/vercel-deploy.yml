@@ -20,8 +20,8 @@ jobs:
           node-version: "20"
       - run: npm ci
       - run: npm run build
-      - name: Deploy Preview to Vercel
-        run: npx vercel --token "${{ secrets.VERCEL_TOKEN }}" --org "${{ secrets.VERCEL_ORG_ID }}" --project "${{ secrets.VERCEL_PROJECT_ID }}"
+      - name: Deploy Preview to Vercel (upload dist)
+        run: npx vercel dist --token "${{ secrets.VERCEL_TOKEN }}" --scope "${{ secrets.VERCEL_ORG_ID }}" --project "${{ secrets.VERCEL_PROJECT_ID }}"
 
   production:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
@@ -33,5 +33,5 @@ jobs:
           node-version: "20"
       - run: npm ci
       - run: npm run build
-      - name: Deploy Production to Vercel
-        run: npx vercel --prod --confirm --token "${{ secrets.VERCEL_TOKEN }}" --org "${{ secrets.VERCEL_ORG_ID }}" --project "${{ secrets.VERCEL_PROJECT_ID }}"
+      - name: Deploy Production to Vercel (upload dist)
+        run: npx vercel dist --prod --confirm --token "${{ secrets.VERCEL_TOKEN }}" --scope "${{ secrets.VERCEL_ORG_ID }}" --project "${{ secrets.VERCEL_PROJECT_ID }}"
