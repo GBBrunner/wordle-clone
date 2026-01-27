@@ -2,6 +2,13 @@
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
+# Run to deploy
+
+```bash
+npm run deploy:preview
+npm run deploy:prod
+```
+
 ## Get started
 
 1. Install dependencies
