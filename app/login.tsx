@@ -10,13 +10,18 @@ import {
 import GoogleSignInLink from "../components/GoogleSignInLink";
 
 export default function Login() {
-  const { signedIn } = useAuth();
+  const { signedIn, isClient } = useAuth();
 
   useEffect(() => {
-    if (signedIn && typeof window !== "undefined") {
+    if (isClient && signedIn === true) {
       window.location.href = "/dashboard";
     }
-  }, [signedIn]);
+  }, [signedIn, isClient]);
+
+  // Avoid hydration mismatch: render null during SSR, then render on client
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <SafeAreaView style={styles.container}>

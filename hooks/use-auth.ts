@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
 
 export function useAuth() {
+  const [isClient, setIsClient] = useState(false);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
+
+  // Mark that we're on the client to avoid hydration mismatch
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const refresh = useCallback(async () => {
     try {
@@ -15,8 +21,10 @@ export function useAuth() {
   }, []);
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    if (isClient) {
+      refresh();
+    }
+  }, [isClient, refresh]);
 
-  return { signedIn, refresh };
+  return { signedIn, refresh, isClient };
 }

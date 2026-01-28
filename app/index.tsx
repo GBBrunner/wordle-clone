@@ -4,13 +4,13 @@ import React, { useEffect, useState } from "react";
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 
 export default function Main() {
-  const { signedIn } = useAuth();
+  const { signedIn, isClient } = useAuth();
   const [name, setName] = useState<string | null>(null);
   const [joined, setJoined] = useState<string | null>(null);
 
   useEffect(() => {
     const loadProfile = async () => {
-      if (signedIn) {
+      if (signedIn && isClient) {
         try {
           const res = await fetch("/api/auth/profile", {
             credentials: "include",
@@ -27,7 +27,18 @@ export default function Main() {
       }
     };
     loadProfile();
-  }, [signedIn]);
+  }, [signedIn, isClient]);
+
+  // Avoid hydration mismatch: render minimal content during SSR
+  if (!isClient) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <Text style={styles.title}>Welcome</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>

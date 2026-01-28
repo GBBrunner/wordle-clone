@@ -10,15 +10,15 @@ import {
 } from "react-native";
 
 export default function Dashboard() {
-  const { signedIn } = useAuth();
+  const { signedIn, isClient } = useAuth();
   const [name, setName] = useState<string | null>(null);
   const [joined, setJoined] = useState<string | null>(null);
 
   useEffect(() => {
-    if (signedIn === false && typeof window !== "undefined") {
+    if (isClient && signedIn === false) {
       window.location.href = "/login";
     }
-  }, [signedIn]);
+  }, [signedIn, isClient]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -58,6 +58,12 @@ export default function Dashboard() {
       }
     }
   };
+
+  // Avoid hydration mismatch: render null during SSR, then render on client
+  if (!isClient) {
+    return null;
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
