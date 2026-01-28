@@ -18,16 +18,12 @@ export default function Login() {
     }
   }, [signedIn, isClient]);
 
-  // Avoid hydration mismatch: render null during SSR, then render on client
-  if (!isClient) {
-    return null;
-  }
-
+  // Single render path to avoid hydration mismatch
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>Login</Text>
-        {signedIn === null ? (
+        {!isClient || signedIn === null ? (
           <View style={{ alignItems: "center", gap: 12 }}>
             <ActivityIndicator color="#fff" />
             <Text style={styles.subtitle}>Checking your session...</Text>

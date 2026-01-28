@@ -29,29 +29,26 @@ export default function Main() {
     loadProfile();
   }, [signedIn, isClient]);
 
-  // Avoid hydration mismatch: render minimal content during SSR
-  if (!isClient) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
-          <Text style={styles.title}>Welcome</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
+  // Avoid hydration mismatch: render exact same content during SSR as initial client render
+  // Auth-dependent content only shown after client mount
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome{name ? `, ${name}` : ""}</Text>
-        <Text style={styles.subtitle}>
-          {signedIn ? "You're signed in." : "This is the main page."}
-        </Text>
-        {signedIn && joined ? (
-          <Text style={styles.meta}>
-            Joined: {new Date(joined).toLocaleDateString()}
-          </Text>
-        ) : null}
+        <Text style={styles.title}>Welcome{isClient && name ? `, ${name}` : ""}</Text>
+        {isClient ? (
+          <>
+            <Text style={styles.subtitle}>
+              {signedIn ? "You're signed in." : "This is the main page."}
+            </Text>
+            {signedIn && joined ? (
+              <Text style={styles.meta}>
+                Joined: {new Date(joined).toLocaleDateString()}
+              </Text>
+            ) : null}
+          </>
+        ) : (
+          <Text style={styles.subtitle}>This is the main page.</Text>
+        )}
         <Link href="/wordle" asChild>
           <Pressable style={styles.cta}>
             <Text style={styles.ctaText}>Play Wordle</Text>
