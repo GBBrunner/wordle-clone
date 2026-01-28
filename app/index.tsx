@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "expo-router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 
 export default function Main() {
