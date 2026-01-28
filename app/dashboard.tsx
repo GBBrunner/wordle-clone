@@ -1,7 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { SafeAreaView, StyleSheet, Text, View, Pressable, ActivityIndicator } from "react-native";
-import { router } from "expo-router";
 import { useAuth } from "@/hooks/use-auth";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+    ActivityIndicator,
+    Pressable,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 
 export default function Dashboard() {
   const { signedIn } = useAuth();
@@ -18,7 +25,9 @@ export default function Dashboard() {
     const loadProfile = async () => {
       if (signedIn) {
         try {
-          const res = await fetch("/api/auth/profile", { credentials: "include" });
+          const res = await fetch("/api/auth/profile", {
+            credentials: "include",
+          });
           if (res.ok) {
             const data = await res.json();
             setName(data.name || null);
@@ -37,7 +46,10 @@ export default function Dashboard() {
         window.location.href = "/api/auth/signout";
         return;
       }
-      await fetch("/api/auth/signout", { method: "POST", credentials: "include" });
+      await fetch("/api/auth/signout", {
+        method: "POST",
+        credentials: "include",
+      });
       router.replace("/");
     } catch {
       router.replace("/");
@@ -55,12 +67,18 @@ export default function Dashboard() {
           <>
             <Text style={styles.title}>Dashboard</Text>
             <Text style={styles.subtitle}>
-              Welcome{ name ? `, ${name}` : "" }!
+              Welcome{name ? `, ${name}` : ""}!
             </Text>
             {joined ? (
-              <Text style={styles.meta}>Joined: {new Date(joined).toLocaleDateString()}</Text>
+              <Text style={styles.meta}>
+                Joined: {new Date(joined).toLocaleDateString()}
+              </Text>
             ) : null}
-            <Pressable style={styles.signout} onPress={onSignOut} accessibilityRole="button">
+            <Pressable
+              style={styles.signout}
+              onPress={onSignOut}
+              accessibilityRole="button"
+            >
               <Text style={styles.signoutText}>Sign out</Text>
             </Pressable>
           </>

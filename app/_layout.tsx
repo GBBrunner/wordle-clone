@@ -9,9 +9,9 @@ import "react-native-reanimated";
 
 import { UserIcon } from "@/components/ui/user-icon";
 import { Colors } from "@/constants/theme";
+import { useAuth } from "@/hooks/use-auth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Pressable } from "react-native";
-import { useAuth } from "@/hooks/use-auth";
 
 // Removed anchor to tabs; focusing app on Wordle screen.
 
@@ -25,9 +25,7 @@ export default function RootLayout() {
           name="index"
           options={{
             title: "Home",
-            headerRight: () => (
-              <HeaderUserLink />
-            ),
+            headerRight: () => <HeaderUserLink />,
           }}
         />
         <Stack.Screen
@@ -35,9 +33,7 @@ export default function RootLayout() {
           options={{
             title: "Wordle",
             // Enable default back arrow to previous screen (Home)
-            headerRight: () => (
-              <HeaderUserLink />
-            ),
+            headerRight: () => <HeaderUserLink />,
           }}
         />
         <Stack.Screen
@@ -56,12 +52,9 @@ function HeaderUserLink() {
   const href = signedIn ? "/dashboard" : "/login";
   return (
     <Link href={href} asChild>
-                <Pressable accessibilityRole="button" hitSlop={8}>
-                  <UserIcon
-                    size={32}
-                    color={Colors[colorScheme ?? "light"].tint}
-                  />
-                </Pressable>
-              </Link>
+      <Pressable accessibilityRole="button" hitSlop={8}>
+        <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
+      </Pressable>
+    </Link>
   );
 }

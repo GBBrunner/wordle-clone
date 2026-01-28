@@ -1,8 +1,14 @@
-import React, { useEffect } from "react";
-import { SafeAreaView, StyleSheet, Text, View, ActivityIndicator } from "react-native";
-import GoogleSignInLink from "../components/GoogleSignInLink";
 import { useAuth } from "@/hooks/use-auth";
 import { router } from "expo-router";
+import React, { useEffect } from "react";
+import {
+    ActivityIndicator,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
+import GoogleSignInLink from "../components/GoogleSignInLink";
 
 export default function Login() {
   const { signedIn } = useAuth();

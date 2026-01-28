@@ -1,7 +1,7 @@
+import { useAuth } from "@/hooks/use-auth";
 import { Link } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
-import { useAuth } from "@/hooks/use-auth";
 
 export default function Main() {
   const { signedIn } = useAuth();
@@ -12,7 +12,9 @@ export default function Main() {
     const loadProfile = async () => {
       if (signedIn) {
         try {
-          const res = await fetch("/api/auth/profile", { credentials: "include" });
+          const res = await fetch("/api/auth/profile", {
+            credentials: "include",
+          });
           if (res.ok) {
             const data = await res.json();
             setName(data.name || null);
@@ -30,12 +32,14 @@ export default function Main() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome{ name ? `, ${name}` : "" }</Text>
+        <Text style={styles.title}>Welcome{name ? `, ${name}` : ""}</Text>
         <Text style={styles.subtitle}>
           {signedIn ? "You're signed in." : "This is the main page."}
         </Text>
         {signedIn && joined ? (
-          <Text style={styles.meta}>Joined: {new Date(joined).toLocaleDateString()}</Text>
+          <Text style={styles.meta}>
+            Joined: {new Date(joined).toLocaleDateString()}
+          </Text>
         ) : null}
         <Link href="/wordle" asChild>
           <Pressable style={styles.cta}>

@@ -118,7 +118,9 @@ export default async function handler(req: any, res: any) {
       `signed_in=1; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=${oneWeek}`,
     );
 
-    const display = encodeURIComponent(profile?.name || profile?.email || "User");
+    const display = encodeURIComponent(
+      profile?.name || profile?.email || "User",
+    );
     cookies.push(
       `display_name=${display}; Path=/; SameSite=Lax; Secure; Max-Age=${oneWeek}`,
     );
