@@ -37,18 +37,7 @@ export default function Main() {
         <Text style={styles.title}>
           Welcome{name ? `, ${name}` : ""}
         </Text>
-        {isClient ? (
-          <>
-            <Text style={styles.subtitle}>
-              {signedIn ? "You're signed in." : "This is the main page."}
-            </Text>
-            {signedIn && joined ? (
-              <Text style={styles.meta}>
-                Joined: {new Date(joined).toLocaleDateString()}
-              </Text>
-            ) : null}
-          </>
-        ) : (
+        {isClient ? null : (
           <Text style={styles.subtitle}>This is the main page.</Text>
         )}
         <Link href="/wordle" asChild>
