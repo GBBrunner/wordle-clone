@@ -30,10 +30,10 @@ export default function Login() {
         {signedIn === null ? (
           <View style={{ alignItems: "center", gap: 12 }}>
             <ActivityIndicator color="#fff" />
-            <Text style={styles.subtitle}>Checking your session…</Text>
+            <Text style={styles.subtitle}>Checking your session...</Text>
           </View>
         ) : signedIn ? (
-          <Text style={styles.subtitle}>Redirecting…</Text>
+          <Text style={styles.subtitle}>Redirecting...</Text>
         ) : (
           <>
             <Text style={styles.subtitle}>Welcome! Sign in to continue.</Text>
