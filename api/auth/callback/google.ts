@@ -111,22 +111,33 @@ export default async function handler(req: any, res: any) {
       if (profRes.ok) profile = await profRes.json();
     }
 
-    // Minimal session cookie (do not store raw access token on client)
-    const cookieParts = [
-      `signed_in=1`,
-      `Path=/`,
-      `HttpOnly`,
-      `SameSite=Lax`,
-      `Secure`,
-      `Max-Age=${60 * 60 * 24 * 7}`,
-    ];
-    res.setHeader("Set-Cookie", cookieParts.join("; "));
+    // Build cookies: HttpOnly session + readable display name + first join date
+    const cookies: string[] = [];
+    const oneWeek = 60 * 60 * 24 * 7;
+    cookies.push(
+      `signed_in=1; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=${oneWeek}`,
+    );
 
-    // Redirect into the app; pass display name via query (non-sensitive)
-    const display = profile?.name || profile?.email || "User";
-    res
-      .status(302)
-      .setHeader("Location", `/dashboard?user=${encodeURIComponent(display)}`);
+    const display = encodeURIComponent(profile?.name || profile?.email || "User");
+    cookies.push(
+      `display_name=${display}; Path=/; SameSite=Lax; Secure; Max-Age=${oneWeek}`,
+    );
+
+    // If user doesn't already have a joined cookie, set one now
+    const hasJoined = (cookieHeader || "")
+      .split(/;\s*/)
+      .some((c: string) => c.startsWith("joined="));
+    if (!hasJoined) {
+      const joined = encodeURIComponent(new Date().toISOString());
+      cookies.push(
+        `joined=${joined}; Path=/; SameSite=Lax; Secure; Max-Age=${oneWeek}`,
+      );
+    }
+
+    res.setHeader("Set-Cookie", cookies);
+
+    // Redirect into the app home after successful sign-in
+    res.status(302).setHeader("Location", `/`);
     res.end();
   } catch (e: any) {
     res

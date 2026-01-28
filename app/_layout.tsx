@@ -11,6 +11,7 @@ import { UserIcon } from "@/components/ui/user-icon";
 import { Colors } from "@/constants/theme";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Pressable } from "react-native";
+import { useAuth } from "@/hooks/use-auth";
 
 // Removed anchor to tabs; focusing app on Wordle screen.
 
@@ -25,14 +26,7 @@ export default function RootLayout() {
           options={{
             title: "Home",
             headerRight: () => (
-              <Link href="/login" asChild>
-                <Pressable accessibilityRole="button" hitSlop={8}>
-                  <UserIcon
-                    size={32}
-                    color={Colors[colorScheme ?? "light"].tint}
-                  />
-                </Pressable>
-              </Link>
+              <HeaderUserLink />
             ),
           }}
         />
@@ -42,14 +36,7 @@ export default function RootLayout() {
             title: "Wordle",
             // Enable default back arrow to previous screen (Home)
             headerRight: () => (
-              <Link href="/login" asChild>
-                <Pressable accessibilityRole="button" hitSlop={8}>
-                  <UserIcon
-                    size={32}
-                    color={Colors[colorScheme ?? "light"].tint}
-                  />
-                </Pressable>
-              </Link>
+              <HeaderUserLink />
             ),
           }}
         />
@@ -60,5 +47,21 @@ export default function RootLayout() {
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
+  );
+}
+
+function HeaderUserLink() {
+  const colorScheme = useColorScheme();
+  const { signedIn } = useAuth();
+  const href = signedIn ? "/dashboard" : "/login";
+  return (
+    <Link href={href} asChild>
+                <Pressable accessibilityRole="button" hitSlop={8}>
+                  <UserIcon
+                    size={32}
+                    color={Colors[colorScheme ?? "light"].tint}
+                  />
+                </Pressable>
+              </Link>
   );
 }
