@@ -10,7 +10,7 @@ import { UserIcon } from "@/components/ui/user-icon";
 import { Colors } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { Platform, Pressable } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 
 // Removed anchor to tabs; focusing app on Wordle screen.
 
@@ -47,7 +47,13 @@ export default function RootLayout() {
 
 function HeaderUserLink() {
   const colorScheme = useColorScheme();
-  const { signedIn } = useAuth();
+  const { signedIn, isClient } = useAuth();
+
+  // Avoid hydration mismatch: render empty placeholder during SSR
+  if (!isClient) {
+    return <View style={{ width: 32, height: 32 }} />;
+  }
+
   const href = signedIn ? "/dashboard" : "/login";
   if (Platform.OS === "web") {
     // Use a plain anchor on web to avoid RN touch event issues
