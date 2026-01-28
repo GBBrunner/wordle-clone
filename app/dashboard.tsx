@@ -1,12 +1,12 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Pressable,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 export default function Dashboard() {
@@ -70,7 +70,7 @@ export default function Dashboard() {
         {signedIn === null ? (
           <View style={{ alignItems: "center", gap: 12 }}>
             <ActivityIndicator color="#fff" />
-            <Text style={styles.subtitle}>Checking your session…</Text>
+            <Text style={styles.subtitle}>Checking your session...</Text>
           </View>
         ) : signedIn ? (
           <>
@@ -92,7 +92,7 @@ export default function Dashboard() {
             </Pressable>
           </>
         ) : (
-          <Text style={styles.subtitle}>Redirecting…</Text>
+          <Text style={styles.subtitle}>Redirecting...</Text>
         )}
       </View>
     </SafeAreaView>
