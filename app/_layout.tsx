@@ -10,7 +10,7 @@ import { UserIcon } from "@/components/ui/user-icon";
 import { Colors } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { Pressable, Platform } from "react-native";
+import { Platform, Pressable } from "react-native";
 
 // Removed anchor to tabs; focusing app on Wordle screen.
 

@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Pressable,

@@ -1,5 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import {
     ActivityIndicator,
     SafeAreaView,
