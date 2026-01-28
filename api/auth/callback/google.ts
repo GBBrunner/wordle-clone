@@ -1,192 +1,26 @@
-// Debug version of Google OAuth callback
-// Replace api/auth/callback/google.ts with this temporarily to debug
+// MINIMAL TEST - Put this in api/auth/callback/google.ts
+// This will help us see if the serverless function is even being called
 
 export default async function handler(req: any, res: any) {
-  console.log("=== OAUTH CALLBACK DEBUG ===");
-  console.log("Method:", req.method);
-  console.log("Query params:", req.query);
-  console.log("Cookies:", req.headers.cookie);
+  // Log everything
+  const debugInfo = {
+    method: req.method,
+    query: req.query,
+    headers: {
+      cookie: req.headers.cookie,
+      host: req.headers.host,
+      referer: req.headers.referer,
+    },
+  };
 
-  if (req.method !== "GET") {
-    res.status(405).json({ error: "Method Not Allowed" });
-    return;
-  }
+  console.log("=== CALLBACK HIT ===", JSON.stringify(debugInfo, null, 2));
 
-  const code = req.query.code as string | undefined;
-  const state = req.query.state as string | undefined;
-  const error = req.query.error as string | undefined;
-
-  if (error) {
-    console.log("ERROR: Google returned error:", error);
-    res
-      .status(302)
-      .setHeader("Location", `/login?error=${encodeURIComponent(error)}`);
-    res.end();
-    return;
-  }
-
-  if (!code) {
-    console.log("ERROR: No code provided");
-    res.status(400).json({ error: "missing_code" });
-    return;
-  }
-
-  // Validate OAuth state to mitigate CSRF
-  const cookieHeader = (req.headers["cookie"] || req.headers["Cookie"]) as
-    | string
-    | undefined;
-  const cookieState = cookieHeader
-    ?.split(/;\s*/)
-    .find((c: string) => c.startsWith("oauth_state="))
-    ?.split("=")[1];
-
-  console.log("State from URL:", state);
-  console.log("State from cookie:", cookieState);
-
-  if (!state || !cookieState || state !== cookieState) {
-    console.log("ERROR: State validation failed!");
-    console.log("  - Has state param:", !!state);
-    console.log("  - Has cookie state:", !!cookieState);
-    console.log("  - States match:", state === cookieState);
-    res
-      .status(302)
-      .setHeader(
-        "Location",
-        `/login?error=${encodeURIComponent("invalid_state")}`,
-      );
-    res.end();
-    return;
-  }
-
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  let redirectUri =
-    process.env.GOOGLE_REDIRECT_URI ||
-    process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI;
-
-  // Fallback: derive origin-based redirect for preview deployments
-  if (!redirectUri) {
-    const host = (req.headers["x-forwarded-host"] ||
-      req.headers.host) as string;
-    const proto = (req.headers["x-forwarded-proto"] || "https") as string;
-    const origin = `${proto}://${host}`;
-    redirectUri = `${origin}/api/auth/callback/google`;
-  }
-
-  console.log("Environment check:");
-  console.log("  - clientId:", clientId ? "SET" : "MISSING");
-  console.log("  - clientSecret:", clientSecret ? "SET" : "MISSING");
-  console.log("  - redirectUri:", redirectUri);
-
-  if (!clientId || !clientSecret || !redirectUri) {
-    console.log("ERROR: Missing environment variables");
-    res.status(500).json({
-      error: "server_env_missing",
-      missing: {
-        clientId: !clientId,
-        clientSecret: !clientSecret,
-        redirectUri: !redirectUri,
-      },
-    });
-    return;
-  }
-
-  try {
-    console.log("Exchanging code for tokens...");
-    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        grant_type: "authorization_code",
-        code,
-        client_id: clientId,
-        client_secret: clientSecret,
-        redirect_uri: redirectUri,
-      }).toString(),
-    });
-
-    if (!tokenRes.ok) {
-      const text = await tokenRes.text();
-      console.log("ERROR: Token exchange failed:", text);
-      res
-        .status(302)
-        .setHeader(
-          "Location",
-          `/login?error=${encodeURIComponent("token_exchange_failed")}`,
-        );
-      res.setHeader("X-Error-Detail", text);
-      res.end();
-      return;
-    }
-
-    const tokens = await tokenRes.json();
-    const accessToken = tokens.access_token as string | undefined;
-    console.log("✓ Got access token:", accessToken ? "YES" : "NO");
-
-    // Optional: fetch basic profile (email, name)
-    let profile: any = null;
-    if (accessToken) {
-      const profRes = await fetch(
-        "https://www.googleapis.com/oauth2/v3/userinfo",
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        },
-      );
-      if (profRes.ok) {
-        profile = await profRes.json();
-        console.log("✓ Got profile:", profile.email);
-      }
-    }
-
-    // Detect if we're on HTTPS or HTTP (for local development)
-    const host = (req.headers["x-forwarded-host"] ||
-      req.headers.host) as string;
-    const proto = (req.headers["x-forwarded-proto"] || "https") as string;
-    const isSecure = proto === "https";
-    console.log("Protocol:", proto, "- Secure:", isSecure);
-
-    // Build cookies
-    const cookies: string[] = [];
-    const oneWeek = 60 * 60 * 24 * 7;
-    const secureFlag = isSecure ? " Secure;" : "";
-
-    const signedInCookie = `signed_in=1; Path=/; HttpOnly; SameSite=Lax;${secureFlag} Max-Age=${oneWeek}`;
-    cookies.push(signedInCookie);
-    console.log("Setting cookie:", signedInCookie);
-
-    const display = encodeURIComponent(
-      profile?.name || profile?.email || "User",
-    );
-    cookies.push(
-      `display_name=${display}; Path=/; SameSite=Lax;${secureFlag} Max-Age=${oneWeek}`,
-    );
-
-    // If user doesn't already have a joined cookie, set one now
-    const hasJoined = (cookieHeader || "")
-      .split(/;\s*/)
-      .some((c: string) => c.startsWith("joined="));
-    if (!hasJoined) {
-      const joined = encodeURIComponent(new Date().toISOString());
-      cookies.push(
-        `joined=${joined}; Path=/; SameSite=Lax;${secureFlag} Max-Age=${oneWeek}`,
-      );
-    }
-
-    console.log("Setting", cookies.length, "cookies");
-    res.setHeader("Set-Cookie", cookies);
-
-    console.log("✓ Redirecting to /");
-    res.status(302).setHeader("Location", `/`);
-    res.end();
-  } catch (e: any) {
-    console.log("ERROR: Unexpected error:", e.message);
-    res
-      .status(302)
-      .setHeader(
-        "Location",
-        `/login?error=${encodeURIComponent("unexpected_error")}`,
-      );
-    res.setHeader("X-Error", String(e?.message || e));
-    res.end();
-  }
+  // Return JSON instead of redirect so we can see what's happening
+  res.status(200).json({
+    message: "✅ Callback function is running!",
+    receivedCode: !!req.query.code,
+    receivedState: !!req.query.state,
+    receivedError: req.query.error || null,
+    debug: debugInfo,
+  });
 }
