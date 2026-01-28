@@ -111,18 +111,28 @@ export default async function handler(req: any, res: any) {
       if (profRes.ok) profile = await profRes.json();
     }
 
+    // Detect if we're on HTTPS or HTTP (for local development)
+    const host = (req.headers["x-forwarded-host"] ||
+      req.headers.host) as string;
+    const proto = (req.headers["x-forwarded-proto"] ||
+      req.headers["x-forwarded-proto"] ||
+      "https") as string;
+    const isSecure = proto === "https";
+
     // Build cookies: HttpOnly session + readable display name + first join date
     const cookies: string[] = [];
     const oneWeek = 60 * 60 * 24 * 7;
+    const secureFlag = isSecure ? " Secure;" : "";
+
     cookies.push(
-      `signed_in=1; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=${oneWeek}`,
+      `signed_in=1; Path=/; HttpOnly; SameSite=Lax;${secureFlag} Max-Age=${oneWeek}`,
     );
 
     const display = encodeURIComponent(
       profile?.name || profile?.email || "User",
     );
     cookies.push(
-      `display_name=${display}; Path=/; SameSite=Lax; Secure; Max-Age=${oneWeek}`,
+      `display_name=${display}; Path=/; SameSite=Lax;${secureFlag} Max-Age=${oneWeek}`,
     );
 
     // If user doesn't already have a joined cookie, set one now
@@ -132,7 +142,7 @@ export default async function handler(req: any, res: any) {
     if (!hasJoined) {
       const joined = encodeURIComponent(new Date().toISOString());
       cookies.push(
-        `joined=${joined}; Path=/; SameSite=Lax; Secure; Max-Age=${oneWeek}`,
+        `joined=${joined}; Path=/; SameSite=Lax;${secureFlag} Max-Age=${oneWeek}`,
       );
     }
 
