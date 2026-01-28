@@ -5,13 +5,12 @@ import {
 } from "@react-navigation/native";
 import { Link, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import "react-native-reanimated";
 
 import { UserIcon } from "@/components/ui/user-icon";
 import { Colors } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
-import { Pressable } from "react-native";
+import { Pressable, Platform } from "react-native";
 
 // Removed anchor to tabs; focusing app on Wordle screen.
 
@@ -50,6 +49,14 @@ function HeaderUserLink() {
   const colorScheme = useColorScheme();
   const { signedIn } = useAuth();
   const href = signedIn ? "/dashboard" : "/login";
+  if (Platform.OS === "web") {
+    // Use a plain anchor on web to avoid RN touch event issues
+    return (
+      <Link href={href}>
+        <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
+      </Link>
+    );
+  }
   return (
     <Link href={href} asChild>
       <Pressable accessibilityRole="button" hitSlop={8}>

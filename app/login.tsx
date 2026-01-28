@@ -1,5 +1,4 @@
 import { useAuth } from "@/hooks/use-auth";
-import { router } from "expo-router";
 import React, { useEffect } from "react";
 import {
     ActivityIndicator,
@@ -14,8 +13,8 @@ export default function Login() {
   const { signedIn } = useAuth();
 
   useEffect(() => {
-    if (signedIn) {
-      router.replace("/dashboard");
+    if (signedIn && typeof window !== "undefined") {
+      window.location.href = "/dashboard";
     }
   }, [signedIn]);
 

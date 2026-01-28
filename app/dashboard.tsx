@@ -1,5 +1,4 @@
 import { useAuth } from "@/hooks/use-auth";
-import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
@@ -16,8 +15,8 @@ export default function Dashboard() {
   const [joined, setJoined] = useState<string | null>(null);
 
   useEffect(() => {
-    if (signedIn === false) {
-      router.replace("/login");
+    if (signedIn === false && typeof window !== "undefined") {
+      window.location.href = "/login";
     }
   }, [signedIn]);
 
@@ -50,9 +49,13 @@ export default function Dashboard() {
         method: "POST",
         credentials: "include",
       });
-      router.replace("/");
+      if (typeof window !== "undefined") {
+        window.location.href = "/";
+      }
     } catch {
-      router.replace("/");
+      if (typeof window !== "undefined") {
+        window.location.href = "/";
+      }
     }
   };
   return (
