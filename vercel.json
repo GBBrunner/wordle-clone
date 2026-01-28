@@ -5,9 +5,6 @@
   "functions": {
     "api/**/*.ts": {
       "runtime": "vercel-nodejs@4.0.0"
-    },
-    "api/**/*.js": {
-      "runtime": "vercel-nodejs@4.0.0"
     }
   },
   "rewrites": [
