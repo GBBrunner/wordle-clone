@@ -23,22 +23,8 @@ function randomState() {
 }
 
 function buildGoogleAuthUrl(state?: string) {
-  const clientId =
-    process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
-  const isDev = process.env.NODE_ENV === "development";
-  const webOrigin =
-    Platform.OS === "web" && typeof window !== "undefined"
-      ? window.location.origin
-      : undefined;
-  const redirectUri = isDev
-    ? webOrigin
-      ? `${webOrigin}/api/auth/callback/google`
-      : process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_DEV_URI ||
-        process.env.GOOGLE_REDIRECT_DEV_URI ||
-        process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI ||
-        process.env.GOOGLE_REDIRECT_URI
-    : process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI ||
-      process.env.GOOGLE_REDIRECT_URI;
+  const clientId = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
+  const redirectUri = process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI;
 
   if (!clientId || !redirectUri) return null;
 
