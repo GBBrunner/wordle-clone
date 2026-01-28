@@ -1,0 +1,62 @@
+I am getting Request for font "Roboto" blocked at visibility level 2 (requires 3) 4 login
+
+unreachable code after return statement entry-d0564b509447447f04517f38ee094dab.js:749:1064
+
+TypeError: can't access property "then", a.default.detectStore(...) is undefined h1-check.js:1:1301
+
+Uncaught Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+
+    xl https://wordle-clone-vercel.vercel.app/_expo/static/js/web/entry-d0564b509447447f04517f38ee094dab.js:530
+
+    Cl https://wordle-clone-vercel.vercel.app/_expo/static/js/web/entry-d0564b509447447f04517f38ee094dab.js:530
+
+    Pi https://wordle-clone-vercel.vercel.app/_expo/static/js/web/entry-d0564b509447447f04517f38ee094dab.js:530
+
+    Tc https://wordle-clone-vercel.vercel.app/_expo/static/js/web/entry-d0564b509447447f04517f38ee094dab.js:530
+
+    Pc https://wordle-clone-vercel.vercel.app/_expo/static/js/web/entry-d0564b509447447f04517f38ee094dab.js:530
+
+    xc https://wordle-clone-vercel.vercel.app/_expo/static/js/web/entry-d0564b509447447f04517f38ee094dab.js:530
+
+    Ec https://wordle-clone-vercel.vercel.app/_expo/static/js/web/entry-d0564b509447447f04517f38ee094dab.js:530
+
+    fc https://wordle-clone-vercel.vercel.app/_expo/static/js/web/entry-d0564b509447447f04517f38ee094dab.js:530
+
+    lf https://wordle-clone-vercel.vercel.app/_expo/static/js/web/entry-d0564b509447447f04517f38ee094dab.js:530
+
+    Jc https://wordle-clone-vercel.vercel.app/_expo/static/js/web/entry-d0564b509447447f04517f38ee094dab.js:530
+
+    nf https://wordle-clone-vercel.vercel.app/_expo/static/js/web/entry-d0564b509447447f04517f38ee094dab.js:530
+
+    Zc https://wordle-clone-vercel.vercel.app/_expo/static/js/web/entry-d0564b509447447f04517f38ee094dab.js:530
+
+entry-d0564b509447447f04517f38ee094dab.js:530:37617
+
+Request for font "Roboto" blocked at visibility level 2 (requires 3) 2 login
+
+Ignoring unsupported entryTypes: longtask. content.js:1:799667
+
+Cannot record touch end without a touch start. Touch End: {"identifier":0,"pageX":919,"pageY":354,"timestamp":5678} Touch Bank: [] entry-d0564b509447447f04517f38ee094dab.js:263:1554
+
+Ignoring unsupported entryTypes: longtask.
+
+It does seem like less errors though
+
+
+
+I deleted app/api/ amd the google.tsx inside it
+
+I have all 4 of those files in the correct direcotry
+
+I do see {"signedIn": false} at the api/auth/me url
+
+At /api/auth/profile I do see {"name":null,"joined":null}
+
+On Network Tab I see: in this order 302, 103 & 302, 103 & 304, 200, 200,
+
+the cookie in Reponse Headers is oauth_state=090c93318c3ee3213c0bbaed7d1608bf ( I didn't see signed_in=1)
+
+
+
+
+

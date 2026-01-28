@@ -1,7 +1,12 @@
-// Vercel Serverless Function: Google OAuth code exchange
-// Exchanges ?code for tokens and redirects back to the app.
+// Debug version of Google OAuth callback
+// Replace api/auth/callback/google.ts with this temporarily to debug
 
 export default async function handler(req: any, res: any) {
+  console.log("=== OAUTH CALLBACK DEBUG ===");
+  console.log("Method:", req.method);
+  console.log("Query params:", req.query);
+  console.log("Cookies:", req.headers.cookie);
+
   if (req.method !== "GET") {
     res.status(405).json({ error: "Method Not Allowed" });
     return;
@@ -12,6 +17,7 @@ export default async function handler(req: any, res: any) {
   const error = req.query.error as string | undefined;
 
   if (error) {
+    console.log("ERROR: Google returned error:", error);
     res
       .status(302)
       .setHeader("Location", `/login?error=${encodeURIComponent(error)}`);
@@ -20,6 +26,7 @@ export default async function handler(req: any, res: any) {
   }
 
   if (!code) {
+    console.log("ERROR: No code provided");
     res.status(400).json({ error: "missing_code" });
     return;
   }
@@ -32,7 +39,15 @@ export default async function handler(req: any, res: any) {
     ?.split(/;\s*/)
     .find((c: string) => c.startsWith("oauth_state="))
     ?.split("=")[1];
+
+  console.log("State from URL:", state);
+  console.log("State from cookie:", cookieState);
+
   if (!state || !cookieState || state !== cookieState) {
+    console.log("ERROR: State validation failed!");
+    console.log("  - Has state param:", !!state);
+    console.log("  - Has cookie state:", !!cookieState);
+    console.log("  - States match:", state === cookieState);
     res
       .status(302)
       .setHeader(
@@ -58,7 +73,13 @@ export default async function handler(req: any, res: any) {
     redirectUri = `${origin}/api/auth/callback/google`;
   }
 
+  console.log("Environment check:");
+  console.log("  - clientId:", clientId ? "SET" : "MISSING");
+  console.log("  - clientSecret:", clientSecret ? "SET" : "MISSING");
+  console.log("  - redirectUri:", redirectUri);
+
   if (!clientId || !clientSecret || !redirectUri) {
+    console.log("ERROR: Missing environment variables");
     res.status(500).json({
       error: "server_env_missing",
       missing: {
@@ -71,6 +92,7 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
+    console.log("Exchanging code for tokens...");
     const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -85,6 +107,7 @@ export default async function handler(req: any, res: any) {
 
     if (!tokenRes.ok) {
       const text = await tokenRes.text();
+      console.log("ERROR: Token exchange failed:", text);
       res
         .status(302)
         .setHeader(
@@ -98,6 +121,7 @@ export default async function handler(req: any, res: any) {
 
     const tokens = await tokenRes.json();
     const accessToken = tokens.access_token as string | undefined;
+    console.log("✓ Got access token:", accessToken ? "YES" : "NO");
 
     // Optional: fetch basic profile (email, name)
     let profile: any = null;
@@ -108,25 +132,27 @@ export default async function handler(req: any, res: any) {
           headers: { Authorization: `Bearer ${accessToken}` },
         },
       );
-      if (profRes.ok) profile = await profRes.json();
+      if (profRes.ok) {
+        profile = await profRes.json();
+        console.log("✓ Got profile:", profile.email);
+      }
     }
 
     // Detect if we're on HTTPS or HTTP (for local development)
     const host = (req.headers["x-forwarded-host"] ||
       req.headers.host) as string;
-    const proto = (req.headers["x-forwarded-proto"] ||
-      req.headers["x-forwarded-proto"] ||
-      "https") as string;
+    const proto = (req.headers["x-forwarded-proto"] || "https") as string;
     const isSecure = proto === "https";
+    console.log("Protocol:", proto, "- Secure:", isSecure);
 
-    // Build cookies: HttpOnly session + readable display name + first join date
+    // Build cookies
     const cookies: string[] = [];
     const oneWeek = 60 * 60 * 24 * 7;
     const secureFlag = isSecure ? " Secure;" : "";
 
-    cookies.push(
-      `signed_in=1; Path=/; HttpOnly; SameSite=Lax;${secureFlag} Max-Age=${oneWeek}`,
-    );
+    const signedInCookie = `signed_in=1; Path=/; HttpOnly; SameSite=Lax;${secureFlag} Max-Age=${oneWeek}`;
+    cookies.push(signedInCookie);
+    console.log("Setting cookie:", signedInCookie);
 
     const display = encodeURIComponent(
       profile?.name || profile?.email || "User",
@@ -146,12 +172,14 @@ export default async function handler(req: any, res: any) {
       );
     }
 
+    console.log("Setting", cookies.length, "cookies");
     res.setHeader("Set-Cookie", cookies);
 
-    // Redirect into the app home after successful sign-in
+    console.log("✓ Redirecting to /");
     res.status(302).setHeader("Location", `/`);
     res.end();
   } catch (e: any) {
+    console.log("ERROR: Unexpected error:", e.message);
     res
       .status(302)
       .setHeader(
