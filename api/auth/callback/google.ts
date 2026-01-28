@@ -1,4 +1,4 @@
-// Complete Google OAuth callback - working version
+// Simplified OAuth callback with more lenient cookie settings
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {
     res.status(405).json({ error: "Method Not Allowed" });
@@ -110,25 +110,17 @@ export default async function handler(req: any, res: any) {
       if (profRes.ok) profile = await profRes.json();
     }
 
-    // Detect if we're on HTTPS or HTTP (for local development)
-    const proto = (req.headers["x-forwarded-proto"] || "https") as string;
-    const isSecure = proto === "https";
-
-    // Build cookies: HttpOnly session + readable display name + first join date
+    // Build cookies with SIMPLER settings
     const cookies: string[] = [];
     const oneWeek = 60 * 60 * 24 * 7;
-    const secureFlag = isSecure ? " Secure;" : "";
 
-    cookies.push(
-      `signed_in=1; Path=/; HttpOnly; SameSite=Lax;${secureFlag} Max-Age=${oneWeek}`,
-    );
+    // CRITICAL: Set cookies with minimal restrictions first
+    cookies.push(`signed_in=1; Path=/; HttpOnly; Max-Age=${oneWeek}`);
 
     const display = encodeURIComponent(
       profile?.name || profile?.email || "User",
     );
-    cookies.push(
-      `display_name=${display}; Path=/; SameSite=Lax;${secureFlag} Max-Age=${oneWeek}`,
-    );
+    cookies.push(`display_name=${display}; Path=/; Max-Age=${oneWeek}`);
 
     // If user doesn't already have a joined cookie, set one now
     const hasJoined = (cookieHeader || "")
@@ -136,9 +128,7 @@ export default async function handler(req: any, res: any) {
       .some((c: string) => c.startsWith("joined="));
     if (!hasJoined) {
       const joined = encodeURIComponent(new Date().toISOString());
-      cookies.push(
-        `joined=${joined}; Path=/; SameSite=Lax;${secureFlag} Max-Age=${oneWeek}`,
-      );
+      cookies.push(`joined=${joined}; Path=/; Max-Age=${oneWeek}`);
     }
 
     res.setHeader("Set-Cookie", cookies);
