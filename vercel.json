@@ -4,10 +4,10 @@
   "outputDirectory": "dist",
   "functions": {
     "api/**/*.ts": {
-      "runtime": "nodejs20.x"
+      "runtime": "vercel-nodejs@4.0.0"
     },
     "api/**/*.js": {
-      "runtime": "nodejs20.x"
+      "runtime": "vercel-nodejs@4.0.0"
     }
   },
   "rewrites": [
