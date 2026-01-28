@@ -34,9 +34,7 @@ export default function Main() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>
-          Welcome{name ? `, ${name}` : ""}
-        </Text>
+        <Text style={styles.title}>Welcome{name ? `, ${name}` : ""}</Text>
         {isClient ? null : (
           <Text style={styles.subtitle}>This is the main page.</Text>
         )}
