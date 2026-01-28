@@ -34,7 +34,9 @@ export default function Main() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome{isClient && name ? `, ${name}` : ""}</Text>
+        <Text style={styles.title}>
+          Welcome{isClient && name ? `, ${name}` : ""}
+        </Text>
         {isClient ? (
           <>
             <Text style={styles.subtitle}>

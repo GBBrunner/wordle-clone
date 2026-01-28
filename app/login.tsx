@@ -1,11 +1,11 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
 import {
-    ActivityIndicator,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import GoogleSignInLink from "../components/GoogleSignInLink";
 
