@@ -1,6 +1,6 @@
+import { Colors } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
-import { Colors } from "@/constants/theme";
 import {
     ActivityIndicator,
     Pressable,
@@ -113,16 +113,33 @@ export default function Dashboard() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: themeColors[theme].background }]}> 
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: themeColors[theme].background },
+      ]}
+    >
       <View style={styles.content}>
         <View style={{ marginBottom: 24, alignItems: "center" }}>
-          <Text style={[styles.title, { color: themeColors[theme].text }]}>Theme Selector</Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
-            {themeOptions.map(opt => (
+          <Text style={[styles.title, { color: themeColors[theme].text }]}>
+            Theme Selector
+          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: 8,
+              marginTop: 8,
+            }}
+          >
+            {themeOptions.map((opt) => (
               <Pressable
                 key={opt.key}
                 style={{
-                  backgroundColor: theme === opt.key ? themeColors[theme].tint : themeColors[theme].icon,
+                  backgroundColor:
+                    theme === opt.key
+                      ? themeColors[theme].tint
+                      : themeColors[theme].icon,
                   borderRadius: 6,
                   paddingHorizontal: 12,
                   paddingVertical: 8,
@@ -131,7 +148,14 @@ export default function Dashboard() {
                 onPress={() => setTheme(opt.key)}
                 accessibilityRole="button"
               >
-                <Text style={{ color: theme === opt.key ? "#fff" : themeColors[theme].text, fontWeight: "600" }}>{opt.label}</Text>
+                <Text
+                  style={{
+                    color: theme === opt.key ? "#fff" : themeColors[theme].text,
+                    fontWeight: "600",
+                  }}
+                >
+                  {opt.label}
+                </Text>
               </Pressable>
             ))}
           </View>
@@ -139,11 +163,15 @@ export default function Dashboard() {
         {signedIn === null ? (
           <View style={{ alignItems: "center", gap: 12 }}>
             <ActivityIndicator color={themeColors[theme].tint} />
-            <Text style={[styles.subtitle, { color: themeColors[theme].text }]}>Checking your session...</Text>
+            <Text style={[styles.subtitle, { color: themeColors[theme].text }]}>
+              Checking your session...
+            </Text>
           </View>
         ) : signedIn ? (
           <>
-            <Text style={[styles.title, { color: themeColors[theme].text }]}>Dashboard</Text>
+            <Text style={[styles.title, { color: themeColors[theme].text }]}>
+              Dashboard
+            </Text>
             <Text style={[styles.subtitle, { color: themeColors[theme].text }]}>
               Welcome{name ? `, ${name}` : ""}!
             </Text>
@@ -153,7 +181,10 @@ export default function Dashboard() {
               </Text>
             ) : null}
             <Pressable
-              style={[styles.signout, { backgroundColor: themeColors[theme].tint }]}
+              style={[
+                styles.signout,
+                { backgroundColor: themeColors[theme].tint },
+              ]}
               onPress={onSignOut}
               accessibilityRole="button"
             >
@@ -161,7 +192,9 @@ export default function Dashboard() {
             </Pressable>
           </>
         ) : (
-          <Text style={[styles.subtitle, { color: themeColors[theme].text }]}>Redirecting...</Text>
+          <Text style={[styles.subtitle, { color: themeColors[theme].text }]}>
+            Redirecting...
+          </Text>
         )}
       </View>
     </SafeAreaView>
