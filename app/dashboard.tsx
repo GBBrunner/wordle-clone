@@ -1,12 +1,12 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Pressable,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 export default function Dashboard() {
@@ -59,11 +59,15 @@ export default function Dashboard() {
     }
   };
 
-  // Single render path to avoid hydration mismatch
+  // Avoid hydration mismatch: render null during SSR, then render on client
+  if (!isClient) {
+    return null;
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {!isClient || signedIn === null ? (
+        {signedIn === null ? (
           <View style={{ alignItems: "center", gap: 12 }}>
             <ActivityIndicator color="#fff" />
             <Text style={styles.subtitle}>Checking your session...</Text>
