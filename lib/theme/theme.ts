@@ -1,22 +1,22 @@
-import { Colors } from '@/constants/theme';
+import { Colors } from "@/constants/theme";
 
-export const THEME_STORAGE_KEY = 'appTheme';
+export const THEME_STORAGE_KEY = "appTheme";
 
 export type ThemeKey =
-  | 'light'
-  | 'dark'
-  | 'lightBlue'
-  | 'darkBlue'
-  | 'lightPink'
-  | 'darkRed';
+  | "light"
+  | "dark"
+  | "lightBlue"
+  | "darkBlue"
+  | "lightPink"
+  | "darkRed";
 
 export const themeOptions: Array<{ key: ThemeKey; label: string }> = [
-  { key: 'light', label: 'Default Light' },
-  { key: 'dark', label: 'Default Dark' },
-  { key: 'lightBlue', label: 'Light Blue' },
-  { key: 'darkBlue', label: 'Dark Blue' },
-  { key: 'lightPink', label: 'Light Pink' },
-  { key: 'darkRed', label: 'Dark Red' },
+  { key: "light", label: "Default Light" },
+  { key: "dark", label: "Default Dark" },
+  { key: "lightBlue", label: "Light Blue" },
+  { key: "darkBlue", label: "Dark Blue" },
+  { key: "lightPink", label: "Light Pink" },
+  { key: "darkRed", label: "Dark Red" },
 ];
 
 export type ThemeColors = {
@@ -31,58 +31,60 @@ export type ThemeColors = {
 export const themeColors: Record<ThemeKey, ThemeColors> = {
   light: {
     ...Colors.light,
-    background: '#f2f2f2',
+    background: "#f2f2f2",
   },
   dark: {
     ...Colors.dark,
     // Avoid white-on-white UI when tint is used as a background (e.g. selected items).
-    tint: '#0a7ea4',
-    tabIconSelected: '#0a7ea4',
+    tint: "#0a7ea4",
+    tabIconSelected: "#0a7ea4",
   },
   lightBlue: {
     ...Colors.light,
-    background: '#e3f2fd',
-    text: '#0d47a1',
-    tint: '#1976d2',
+    background: "#e3f2fd",
+    text: "#0d47a1",
+    tint: "#1976d2",
   },
   darkBlue: {
     ...Colors.dark,
-    background: '#0d1b2a',
-    text: '#90caf9',
-    tint: '#1976d2',
+    background: "#0d1b2a",
+    text: "#90caf9",
+    tint: "#1976d2",
   },
   lightPink: {
     ...Colors.light,
-    background: '#ffe4ec',
-    text: '#ad1457',
-    tint: '#d81b60',
+    background: "#ffe4ec",
+    text: "#ad1457",
+    tint: "#d81b60",
   },
   darkRed: {
     ...Colors.dark,
-    background: '#2d0000',
-    text: '#ff8a80',
-    tint: '#d32f2f',
+    background: "#2d0000",
+    text: "#ff8a80",
+    tint: "#d32f2f",
   },
 };
 
 export function isThemeKey(value: unknown): value is ThemeKey {
   return (
-    value === 'light' ||
-    value === 'dark' ||
-    value === 'lightBlue' ||
-    value === 'darkBlue' ||
-    value === 'lightPink' ||
-    value === 'darkRed'
+    value === "light" ||
+    value === "dark" ||
+    value === "lightBlue" ||
+    value === "darkBlue" ||
+    value === "lightPink" ||
+    value === "darkRed"
   );
 }
 
-export function baseColorSchemeForTheme(theme: ThemeKey): 'light' | 'dark' {
-  return theme === 'dark' || theme === 'darkBlue' || theme === 'darkRed'
-    ? 'dark'
-    : 'light';
+export function baseColorSchemeForTheme(theme: ThemeKey): "light" | "dark" {
+  return theme === "dark" || theme === "darkBlue" || theme === "darkRed"
+    ? "dark"
+    : "light";
 }
 
-function parseHexColor(hex: string): { r: number; g: number; b: number } | null {
+function parseHexColor(
+  hex: string,
+): { r: number; g: number; b: number } | null {
   const normalized = hex.trim();
   const m = /^#([0-9a-fA-F]{6})$/.exec(normalized);
   if (!m) return null;
@@ -105,8 +107,8 @@ function srgbToLinear(c: number) {
  */
 export function readableTextOn(
   backgroundHex: string,
-  lightText = '#fff',
-  darkText = '#11181C',
+  lightText = "#fff",
+  darkText = "#11181C",
 ) {
   const rgb = parseHexColor(backgroundHex);
   if (!rgb) return lightText;

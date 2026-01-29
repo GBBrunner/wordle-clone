@@ -1,6 +1,6 @@
+import { useAppTheme } from "@/lib/theme/context";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
-import { useAppTheme } from "@/lib/theme/context";
 import type { Evaluation } from "../lib/wordle/engine";
 
 type Props = {
@@ -157,7 +157,8 @@ export default function Board({
                   styles.cell,
                   {
                     backgroundColor: tileBg,
-                    borderColor: cell.state === "filled" ? filledBorder : emptyBorder,
+                    borderColor:
+                      cell.state === "filled" ? filledBorder : emptyBorder,
                   },
                   // Apply eval color as soon as the cell's reveal animation starts
                   isRevealedEval ? styles[cell.eval!] : null,

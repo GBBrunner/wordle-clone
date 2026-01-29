@@ -1,7 +1,7 @@
-import { useAppTheme } from '@/lib/theme/context';
+import { useAppTheme } from "@/lib/theme/context";
 
 export function useColorScheme() {
-	const { colorScheme, hasHydrated } = useAppTheme();
-	// Keep SSR/initial render stable
-	return hasHydrated ? colorScheme : 'light';
+  const { colorScheme, hasHydrated } = useAppTheme();
+  // Keep SSR/initial render stable
+  return hasHydrated ? colorScheme : "light";
 }

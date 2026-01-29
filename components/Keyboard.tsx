@@ -1,7 +1,7 @@
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useAppTheme } from "@/lib/theme/context";
 import { readableTextOn } from "@/lib/theme/theme";
+import React from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 const ROWS = [
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
@@ -50,7 +50,9 @@ export default function Keyboard({ onKey, keyStates = {} }: Props) {
                   state && styles[state],
                 ]}
               >
-                <Text style={[styles.keyText, { color: textColor }]}>{key}</Text>
+                <Text style={[styles.keyText, { color: textColor }]}>
+                  {key}
+                </Text>
               </Pressable>
             );
           })}

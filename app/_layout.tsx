@@ -1,7 +1,7 @@
 import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
+    DarkTheme,
+    DefaultTheme,
+    ThemeProvider,
 } from "@react-navigation/native";
 import { Link, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -93,14 +93,20 @@ function HeaderUserLink() {
     // Use a plain anchor on web to avoid RN touch event issues
     return (
       <Link href={href}>
-        <UserIcon size={32} color={colors?.tint ?? Colors[colorScheme ?? "light"].tint} />
+        <UserIcon
+          size={32}
+          color={colors?.tint ?? Colors[colorScheme ?? "light"].tint}
+        />
       </Link>
     );
   }
   return (
     <Link href={href} asChild>
       <Pressable accessibilityRole="button" hitSlop={8}>
-        <UserIcon size={32} color={colors?.tint ?? Colors[colorScheme ?? "light"].tint} />
+        <UserIcon
+          size={32}
+          color={colors?.tint ?? Colors[colorScheme ?? "light"].tint}
+        />
       </Pressable>
     </Link>
   );

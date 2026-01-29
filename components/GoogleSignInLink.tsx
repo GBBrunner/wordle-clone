@@ -65,7 +65,11 @@ export default function GoogleSignInLink() {
     };
 
     return (
-      <Pressable style={styles.button} onPress={handleClick} accessibilityRole="button">
+      <Pressable
+        style={styles.button}
+        onPress={handleClick}
+        accessibilityRole="button"
+      >
         {WebGoogleIcon ? (
           // react-icons renders an svg element on web
           <WebGoogleIcon size={20} style={{ marginRight: 8 }} />

@@ -68,10 +68,7 @@ export default function Dashboard() {
 
   return (
     <SafeAreaView
-      style={[
-        styles.container,
-        { backgroundColor: colors.background },
-      ]}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
       <View style={styles.content}>
         {signedIn === null ? (
@@ -95,10 +92,7 @@ export default function Dashboard() {
               </Text>
             ) : null}
             <Pressable
-              style={[
-                styles.signout,
-                { backgroundColor: colors.tint },
-              ]}
+              style={[styles.signout, { backgroundColor: colors.tint }]}
               onPress={onSignOut}
               accessibilityRole="button"
             >

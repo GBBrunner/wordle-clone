@@ -1,3 +1,5 @@
+import { useAppTheme } from "@/lib/theme/context";
+import { readableTextOn } from "@/lib/theme/theme";
 import React, { useEffect, useRef, useState } from "react";
 import {
     Platform,
@@ -12,8 +14,6 @@ import Board from "../components/Board";
 import Keyboard from "../components/Keyboard";
 import { getAllowedGuessesSet, getWordsForLength } from "../data/words";
 import { evaluateGuess, getDailyWord, randomWord } from "../lib/wordle/engine";
-import { useAppTheme } from "@/lib/theme/context";
-import { readableTextOn } from "@/lib/theme/theme";
 
 const DAILY_WORD_LEN = 5;
 const MAX_ROWS = 6;
@@ -143,7 +143,9 @@ export default function WordlePage() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>
           Wordle (Daily + Endless)
@@ -245,10 +247,7 @@ export default function WordlePage() {
               style={[styles.cta, { backgroundColor: colors.tint }]}
             >
               <Text
-                style={[
-                  styles.ctaText,
-                  { color: readableTextOn(colors.tint) },
-                ]}
+                style={[styles.ctaText, { color: readableTextOn(colors.tint) }]}
               >
                 Play Endless Mode
               </Text>
@@ -259,10 +258,7 @@ export default function WordlePage() {
               style={[styles.cta, { backgroundColor: colors.tint }]}
             >
               <Text
-                style={[
-                  styles.ctaText,
-                  { color: readableTextOn(colors.tint) },
-                ]}
+                style={[styles.ctaText, { color: readableTextOn(colors.tint) }]}
               >
                 New Endless Game
               </Text>

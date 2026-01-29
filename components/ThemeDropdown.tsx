@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
-  Modal,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+    Modal,
+    Platform,
+    Pressable,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 
-import { useAppTheme } from '@/lib/theme/context';
-import { isThemeKey, readableTextOn } from '@/lib/theme/theme';
+import { useAppTheme } from "@/lib/theme/context";
+import { isThemeKey, readableTextOn } from "@/lib/theme/theme";
 
 export function ThemeDropdown({ compact }: { compact?: boolean }) {
   const { theme, setTheme, hasHydrated, options, colors } = useAppTheme();
@@ -22,11 +22,11 @@ export function ThemeDropdown({ compact }: { compact?: boolean }) {
     return <View style={{ width: 140, height, opacity: 0 }} />;
   }
 
-  if (Platform.OS === 'web') {
+  if (Platform.OS === "web") {
     const style: React.CSSProperties = {
       height,
       borderRadius: 8,
-      padding: '0 10px',
+      padding: "0 10px",
       border: `1px solid ${colors.icon}`,
       background: colors.background,
       color: colors.text,
@@ -34,7 +34,7 @@ export function ThemeDropdown({ compact }: { compact?: boolean }) {
     };
 
     return (
-      <View style={{ justifyContent: 'center' }}>
+      <View style={{ justifyContent: "center" }}>
         <select
           aria-label="Theme"
           value={theme}
@@ -71,11 +71,23 @@ export function ThemeDropdown({ compact }: { compact?: boolean }) {
         <Text style={[styles.buttonText, { color: colors.text }]}>Theme</Text>
       </Pressable>
 
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+      <Modal
+        visible={open}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+      >
         <Pressable style={styles.backdrop} onPress={() => setOpen(false)} />
         <SafeAreaView style={styles.modalWrap}>
-          <View style={[styles.modal, { backgroundColor: colors.background, borderColor: colors.icon }]}>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Select Theme</Text>
+          <View
+            style={[
+              styles.modal,
+              { backgroundColor: colors.background, borderColor: colors.icon },
+            ]}
+          >
+            <Text style={[styles.modalTitle, { color: colors.text }]}>
+              Select Theme
+            </Text>
             {options.map((opt) => {
               const selected = opt.key === theme;
               return (
@@ -88,15 +100,17 @@ export function ThemeDropdown({ compact }: { compact?: boolean }) {
                   style={[
                     styles.option,
                     {
-                      backgroundColor: selected ? colors.tint : 'transparent',
+                      backgroundColor: selected ? colors.tint : "transparent",
                       borderColor: colors.icon,
                     },
                   ]}
                 >
                   <Text
                     style={{
-                      color: selected ? readableTextOn(colors.tint) : colors.text,
-                      fontWeight: '600',
+                      color: selected
+                        ? readableTextOn(colors.tint)
+                        : colors.text,
+                      fontWeight: "600",
                     }}
                   >
                     {opt.label}
@@ -117,16 +131,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 12,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
-  buttonText: { fontWeight: '700' },
+  buttonText: { fontWeight: "700" },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    backgroundColor: "rgba(0,0,0,0.25)",
   },
   modalWrap: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 20,
   },
   modal: {
@@ -135,7 +149,7 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 10,
   },
-  modalTitle: { fontSize: 18, fontWeight: '800' },
+  modalTitle: { fontSize: 18, fontWeight: "800" },
   option: {
     borderWidth: 1,
     borderRadius: 10,
