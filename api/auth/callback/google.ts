@@ -1,7 +1,23 @@
-// api/auth/callback/google.ts - Fixed version with Firebase Admin SDK
-import { adminDb } from "../../../lib/firebase-admin";
-
+// Diagnostic version - identifies Firebase issue
 export default async function handler(req: any, res: any) {
+  const diagnostics = {
+    hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
+    hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+    hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
+    privateKeyStart:
+      process.env.FIREBASE_PRIVATE_KEY?.substring(0, 30) || "missing",
+  };
+
+  // If this is a test request, show diagnostics
+  if (req.query.test === "1") {
+    return res.status(200).json({
+      message: "Firebase diagnostics",
+      diagnostics,
+      nodeVersion: process.version,
+    });
+  }
+
+  // Normal OAuth flow continues...
   if (req.method !== "GET") {
     res.status(405).json({ error: "Method Not Allowed" });
     return;
@@ -24,7 +40,6 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  // Validate OAuth state to mitigate CSRF
   const cookieHeader = (req.headers["cookie"] || req.headers["Cookie"]) as
     | string
     | undefined;
@@ -50,24 +65,15 @@ export default async function handler(req: any, res: any) {
     process.env.GOOGLE_REDIRECT_URI ||
     process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI;
 
-  // Fallback: derive origin-based redirect for preview deployments
   if (!redirectUri) {
     const host = (req.headers["x-forwarded-host"] ||
       req.headers.host) as string;
     const proto = (req.headers["x-forwarded-proto"] || "https") as string;
-    const origin = `${proto}://${host}`;
-    redirectUri = `${origin}/api/auth/callback/google`;
+    redirectUri = `${proto}://${host}/api/auth/callback/google`;
   }
 
   if (!clientId || !clientSecret || !redirectUri) {
-    res.status(500).json({
-      error: "server_env_missing",
-      missing: {
-        clientId: !clientId,
-        clientSecret: !clientSecret,
-        redirectUri: !redirectUri,
-      },
-    });
+    res.status(500).json({ error: "server_env_missing" });
     return;
   }
 
@@ -92,7 +98,6 @@ export default async function handler(req: any, res: any) {
           "Location",
           `/login?error=${encodeURIComponent("token_exchange_failed")}`,
         );
-      res.setHeader("X-Error-Detail", text);
       res.end();
       return;
     }
@@ -100,7 +105,6 @@ export default async function handler(req: any, res: any) {
     const tokens = await tokenRes.json();
     const accessToken = tokens.access_token as string | undefined;
 
-    // Fetch user profile
     let profile: any = null;
     if (accessToken) {
       const profRes = await fetch(
@@ -112,9 +116,13 @@ export default async function handler(req: any, res: any) {
       if (profRes.ok) {
         profile = await profRes.json();
 
-        // Save user to Firestore using Admin SDK
+        // Try Firebase with detailed error reporting
         if (profile.sub) {
           try {
+            console.log("Attempting Firebase init with:", diagnostics);
+            const { adminDb } = await import("../../../lib/firebase-admin");
+            console.log("Firebase Admin imported successfully");
+
             await adminDb.collection("users").doc(profile.sub).set(
               {
                 email: profile.email,
@@ -122,28 +130,29 @@ export default async function handler(req: any, res: any) {
                 picture: profile.picture,
                 lastLogin: new Date().toISOString(),
               },
-              { merge: true }
+              { merge: true },
             );
-          } catch (firestoreError: any) {
-            // Log but don't fail the auth flow if Firestore fails
-            console.error("Firestore error:", firestoreError.message);
+            console.log("Firestore write successful");
+          } catch (firebaseError: any) {
+            console.error("Firebase error details:", {
+              message: firebaseError.message,
+              code: firebaseError.code,
+              stack: firebaseError.stack?.substring(0, 200),
+              diagnostics,
+            });
+            // Continue auth flow despite Firebase error
           }
         }
       }
     }
 
-    // Build cookies
     const cookies: string[] = [];
     const oneWeek = 60 * 60 * 24 * 7;
-
     cookies.push(`signed_in=1; Path=/; HttpOnly; Max-Age=${oneWeek}`);
-
     const display = encodeURIComponent(
       profile?.name || profile?.email || "User",
     );
     cookies.push(`display_name=${display}; Path=/; Max-Age=${oneWeek}`);
-
-    // If user doesn't already have a joined cookie, set one now
     const hasJoined = (cookieHeader || "")
       .split(/;\s*/)
       .some((c: string) => c.startsWith("joined="));
@@ -153,19 +162,16 @@ export default async function handler(req: any, res: any) {
     }
 
     res.setHeader("Set-Cookie", cookies);
-
-    // Redirect to home page after successful sign-in
     res.status(302).setHeader("Location", `/`);
     res.end();
   } catch (e: any) {
-    console.error("OAuth callback error:", e.message);
+    console.error("OAuth error:", e.message);
     res
       .status(302)
       .setHeader(
         "Location",
         `/login?error=${encodeURIComponent("unexpected_error")}`,
       );
-    res.setHeader("X-Error", String(e?.message || e));
     res.end();
   }
 }

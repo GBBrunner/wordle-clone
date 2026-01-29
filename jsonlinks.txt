@@ -1,0 +1,8 @@
+Strands
+https://www.nytimes.com/svc/strands/v2/YYYY-MM-DD.json
+
+Connections
+https://www.nytimes.com/svc/connections/v2/YYYY-MM-DD.json
+
+Wordle
+https://www.nytimes.com/svc/wordle/v2/YYYY-MM-DD.json
