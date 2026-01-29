@@ -388,8 +388,8 @@ const styles = StyleSheet.create({
     gap: 5,
     paddingVertical: 4,
     justifyContent: "center",
-    width: '50%',
-    alignSelf: 'center',
+    width: "50%",
+    alignSelf: "center",
   },
   tile: {
     // Dynamic width calculated for 4 columns
