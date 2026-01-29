@@ -11,7 +11,9 @@ const { PNG } = require("pngjs");
 
 const inputPath = process.argv[2];
 if (!inputPath) {
-  console.error("Missing input PNG path. Example: node scripts/strip-png-corner-bg.js assets/images/wordle-icon.png");
+  console.error(
+    "Missing input PNG path. Example: node scripts/strip-png-corner-bg.js assets/images/wordle-icon.png",
+  );
   process.exit(1);
 }
 
