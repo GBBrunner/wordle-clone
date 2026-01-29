@@ -5,6 +5,7 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 # Run to deploy
 
 ```bash
+npm run build
 npm run deploy:preview
 npm run deploy:prod
 ```

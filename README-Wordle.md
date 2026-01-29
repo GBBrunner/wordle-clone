@@ -23,9 +23,10 @@ $env:EXPO_PUBLIC_DAILY_WORD_URL = "https://your-domain.example/daily-word.txt"; 
 ```
 
 Notes:
+
 - By default, the app will try to fetch the daily solution from the NYT Wordle JSON endpoint at runtime using the current America/New_York date.
-	- In production on Vercel it will use the built-in proxy at `/api/wordle/:date`.
-	- For local web development (where Vercel serverless `/api` isn’t available), set `EXPO_PUBLIC_WORDLE_NYT_PROXY_URL` to a deployed site’s `/api/wordle` base URL (for example your Vercel production URL).
+  - In production on Vercel it will use the built-in proxy at `/api/wordle/:date`.
+  - For local web development (where Vercel serverless `/api` isn’t available), set `EXPO_PUBLIC_WORDLE_NYT_PROXY_URL` to a deployed site’s `/api/wordle` base URL (for example your Vercel production URL).
 - We do not bundle NYT content into the repo; the solution is fetched at runtime.
 - The local daily algorithm uses a base date (2021-06-19) and cycles through the included word list.
 

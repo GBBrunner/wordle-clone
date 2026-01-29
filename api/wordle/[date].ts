@@ -41,7 +41,9 @@ export default async function handler(req: Req, res: Res) {
 
   const date = getQueryParam(req, "date");
   if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    res.status(400).end(JSON.stringify({ error: "Invalid date; expected YYYY-MM-DD" }));
+    res
+      .status(400)
+      .end(JSON.stringify({ error: "Invalid date; expected YYYY-MM-DD" }));
     return;
   }
 
@@ -59,21 +61,30 @@ export default async function handler(req: Req, res: Res) {
     if (!upstream.ok) {
       res
         .status(upstream.status)
-        .end(JSON.stringify({ error: "Upstream error", status: upstream.status }));
+        .end(
+          JSON.stringify({ error: "Upstream error", status: upstream.status }),
+        );
       return;
     }
 
     const data = (await upstream.json()) as { solution?: unknown };
     const solution =
-      typeof data?.solution === "string" ? data.solution.trim().toLowerCase() : "";
+      typeof data?.solution === "string"
+        ? data.solution.trim().toLowerCase()
+        : "";
 
     if (!/^[a-z]{5}$/.test(solution)) {
-      res.status(502).end(JSON.stringify({ error: "Invalid upstream payload" }));
+      res
+        .status(502)
+        .end(JSON.stringify({ error: "Invalid upstream payload" }));
       return;
     }
 
     res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    res.setHeader(
+      "Cache-Control",
+      "public, s-maxage=3600, stale-while-revalidate=86400",
+    );
     res.status(200).end(JSON.stringify({ date, solution }));
   } catch {
     res.status(502).end(JSON.stringify({ error: "Failed to fetch upstream" }));
