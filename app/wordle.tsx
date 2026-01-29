@@ -1,5 +1,8 @@
+import { useAuth } from "@/hooks/use-auth";
+import { db } from "@/lib/firebase";
 import { useAppTheme } from "@/lib/theme/context";
 import { readableTextOn } from "@/lib/theme/theme";
+import { doc, increment, setDoc } from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import {
     Platform,
@@ -12,9 +15,6 @@ import {
 } from "react-native";
 import Board from "../components/Board";
 import Keyboard from "../components/Keyboard";
-import { useAuth } from "@/hooks/use-auth";
-import { db } from "@/lib/firebase";
-import { doc, getDoc, increment, setDoc } from "firebase/firestore";
 import { getAllowedGuessesSet, getWordsForLength } from "../data/words";
 import { evaluateGuess, getDailyWord, randomWord } from "../lib/wordle/engine";
 

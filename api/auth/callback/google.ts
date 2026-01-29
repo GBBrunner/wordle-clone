@@ -1,5 +1,5 @@
-import { db } from "../../../lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
+import { db } from "../../../lib/firebase";
 
 // Final working Google OAuth callback
 export default async function handler(req: any, res: any) {
