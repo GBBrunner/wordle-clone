@@ -1,3 +1,5 @@
+"use client";
+
 import { useAuth } from "@/hooks/use-auth";
 import { db } from "@/lib/firebase";
 import { useAppTheme } from "@/lib/theme/context";
