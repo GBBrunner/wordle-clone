@@ -51,7 +51,11 @@ export default async function handler(req: Req, res: Res) {
     hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
   };
 
-  if (!diagnostics.hasProjectId || !diagnostics.hasClientEmail || !diagnostics.hasPrivateKey) {
+  if (
+    !diagnostics.hasProjectId ||
+    !diagnostics.hasClientEmail ||
+    !diagnostics.hasPrivateKey
+  ) {
     res.setHeader("Content-Type", "application/json");
     res
       .status(500)

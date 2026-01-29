@@ -49,7 +49,11 @@ export default async function handler(req: Req, res: Res) {
     hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
   };
 
-  if (!diagnostics.hasProjectId || !diagnostics.hasClientEmail || !diagnostics.hasPrivateKey) {
+  if (
+    !diagnostics.hasProjectId ||
+    !diagnostics.hasClientEmail ||
+    !diagnostics.hasPrivateKey
+  ) {
     res.setHeader("Content-Type", "application/json");
     res
       .status(500)
@@ -75,12 +79,22 @@ export default async function handler(req: Req, res: Res) {
       else distribution[k] = 0;
     }
 
-    const winRate = games_played > 0 ? Math.round((wordles_completed / games_played) * 100) : 0;
+    const winRate =
+      games_played > 0
+        ? Math.round((wordles_completed / games_played) * 100)
+        : 0;
 
     res.setHeader("Content-Type", "application/json");
-    res.status(200).end(
-      JSON.stringify({ games_played, wordles_completed, winRate, distribution }),
-    );
+    res
+      .status(200)
+      .end(
+        JSON.stringify({
+          games_played,
+          wordles_completed,
+          winRate,
+          distribution,
+        }),
+      );
   } catch (e: any) {
     const msg = typeof e?.message === "string" ? e.message : "unknown_error";
     res.setHeader("Content-Type", "application/json");

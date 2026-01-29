@@ -153,15 +153,12 @@ export default function WordlePage() {
     }
   }
 
-  const [stats, setStats] = useState<
-    | {
-        games_played: number;
-        wordles_completed: number;
-        winRate: number;
-        distribution: Record<string, number>;
-      }
-    | null
-  >(null);
+  const [stats, setStats] = useState<{
+    games_played: number;
+    wordles_completed: number;
+    winRate: number;
+    distribution: Record<string, number>;
+  } | null>(null);
 
   useEffect(() => {
     if (done) {

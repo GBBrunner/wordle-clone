@@ -1,6 +1,6 @@
+import { useAppTheme } from "@/lib/theme/context";
 import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
-import { useAppTheme } from "@/lib/theme/context";
 
 type Stats = {
   games_played: number;
@@ -17,7 +17,11 @@ export default function StatsChart({ stats }: Props) {
   const { colors } = useAppTheme();
 
   const counts = useMemo(
-    () => Array.from({ length: 6 }, (_, i) => stats.distribution[`wordle_in_${i + 1}`] || 0),
+    () =>
+      Array.from(
+        { length: 6 },
+        (_, i) => stats.distribution[`wordle_in_${i + 1}`] || 0,
+      ),
     [stats],
   );
   const maxCount = Math.max(1, ...counts);
@@ -43,12 +47,14 @@ export default function StatsChart({ stats }: Props) {
   return (
     <View style={styles.container}>
       <Text style={[styles.title, { color: colors.text }]}>Stats</Text>
-      <Text style={[styles.meta, { color: colors.text }]}>Games played: {stats.games_played}  Win Rate: {stats.winRate}%</Text>
+      <Text style={[styles.meta, { color: colors.text }]}>
+        Games played: {stats.games_played} Win Rate: {stats.winRate}%
+      </Text>
       <View style={{ marginTop: 8, gap: 6 }}>
         {counts.map((count, i) => (
           <View key={i} style={styles.row}>
             <Text style={[styles.label, { color: colors.text }]}>{i + 1}</Text>
-            <View style={[styles.barTrack, { backgroundColor: colors.icon }]}> 
+            <View style={[styles.barTrack, { backgroundColor: colors.icon }]}>
               <Animated.View
                 style={[
                   styles.barFill,
