@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import Board from "../components/Board";
 import Keyboard from "../components/Keyboard";
+import StatsChart from "../components/StatsChart";
 import { getAllowedGuessesSet, getWordsForLength } from "../data/words";
 import { evaluateGuess, getDailyWord, randomWord } from "../lib/wordle/engine";
 
@@ -143,8 +144,36 @@ export default function WordlePage() {
     } else if (guesses.length + 1 >= MAX_ROWS) {
       setDone(true);
       setMessage(`Out of tries. The word was ${secret.toUpperCase()}`);
+      // Record a loss
+      fetch("/api/wordle/loss", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }).catch(() => {});
     }
   }
+
+  const [stats, setStats] = useState<
+    | {
+        games_played: number;
+        wordles_completed: number;
+        winRate: number;
+        distribution: Record<string, number>;
+      }
+    | null
+  >(null);
+
+  useEffect(() => {
+    if (done) {
+      fetch("/api/wordle/stats", {
+        method: "GET",
+        credentials: "include",
+      })
+        .then((r) => r.json())
+        .then((data) => setStats(data))
+        .catch(() => {});
+    }
+  }, [done]);
 
   function startEndless() {
     setMode("endless");
@@ -278,6 +307,7 @@ export default function WordlePage() {
               </Text>
             </Pressable>
           )}
+          {stats && <StatsChart stats={stats} />}
         </View>
       )}
 

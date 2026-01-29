@@ -1,5 +1,5 @@
-// Vercel Serverless Function: Record a Wordle win for the current user
-// Increments Firestore counters: wordles_completed and wordle_in_{guessCount}
+// Vercel Serverless Function: Record a Wordle loss for the current user
+// Increments Firestore counters: games_played and wordles_failed
 // Reads HttpOnly cookie 'user_id' set during Google OAuth callback
 
 type Req = {
@@ -45,46 +45,31 @@ export default async function handler(req: Req, res: Res) {
     return;
   }
 
+  const diagnostics = {
+    hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
+    hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+    hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
+  };
+
+  if (!diagnostics.hasProjectId || !diagnostics.hasClientEmail || !diagnostics.hasPrivateKey) {
+    res.setHeader("Content-Type", "application/json");
+    res
+      .status(500)
+      .end(JSON.stringify({ error: "server_env_missing", diagnostics }));
+    return;
+  }
+
   try {
-    const body =
-      typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
-    const guessCount = Number(body?.guessCount);
-    if (!Number.isFinite(guessCount) || guessCount < 1 || guessCount > 10) {
-      res.status(400).end(JSON.stringify({ error: "invalid_guessCount" }));
-      return;
-    }
-
-    const diagnostics = {
-      hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
-      hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
-      hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
-    };
-
-    if (!diagnostics.hasProjectId || !diagnostics.hasClientEmail || !diagnostics.hasPrivateKey) {
-      res.setHeader("Content-Type", "application/json");
-      res
-        .status(500)
-        .end(
-          JSON.stringify({ error: "server_env_missing", diagnostics }),
-        );
-      return;
-    }
-
     const { adminDb, admin } = await import("../../lib/firebase-admin.js");
     const userRef = adminDb.collection("users").doc(decodeURIComponent(userId));
 
     await userRef.set(
       {
-        wordles_completed: admin.firestore.FieldValue.increment(1),
         games_played: admin.firestore.FieldValue.increment(1),
-        ["wordle_in_" + guessCount]: admin.firestore.FieldValue.increment(1),
+        wordles_failed: admin.firestore.FieldValue.increment(1),
       },
       { merge: true },
     );
-
-    // If FieldValue.increment is not available via adminDb, fallback to a transaction
-    // Note: In typical Firebase Admin SDK, use admin.firestore.FieldValue.increment
-    // The above cast handles module import differences.
 
     res.setHeader("Content-Type", "application/json");
     res.status(200).end(JSON.stringify({ ok: true }));
