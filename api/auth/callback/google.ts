@@ -120,7 +120,7 @@ export default async function handler(req: any, res: any) {
         if (profile.sub) {
           try {
             console.log("Attempting Firebase init with:", diagnostics);
-            const { adminDb } = await import("../../../lib/firebase-admin");
+            const { adminDb } = await import("../../../lib/firebase-admin.js");
             console.log("Firebase Admin imported successfully");
 
             await adminDb.collection("users").doc(profile.sub).set(
