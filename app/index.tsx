@@ -4,6 +4,8 @@ import { Link } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 
+import WordleCardIcon from "../assets/images/wordle-card-icon.svg";
+
 export default function Main() {
   const { signedIn, isClient } = useAuth();
   const { colors } = useAppTheme();
@@ -70,7 +72,14 @@ export default function Main() {
         )}
         <Link href="/wordle" asChild>
           <Pressable style={dynamicStyles.cta}>
-            <Text style={styles.ctaText}>Play Wordle</Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <WordleCardIcon
+                width={50}
+                height={50}
+                style={{ marginRight: 12 }}
+              />
+              <Text style={styles.ctaText}>Play Wordle</Text>
+            </View>
           </Pressable>
         </Link>
       </View>
