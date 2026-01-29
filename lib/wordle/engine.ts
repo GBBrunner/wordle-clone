@@ -47,6 +47,25 @@ export function stripTime(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
+export function formatYYYYMMDDInTimeZone(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const year = parts.find((p) => p.type === 'year')?.value;
+  const month = parts.find((p) => p.type === 'month')?.value;
+  const day = parts.find((p) => p.type === 'day')?.value;
+  if (!year || !month || !day) throw new Error('Failed to format date');
+  return `${year}-${month}-${day}`;
+}
+
+export function getNYTWordleDateString(today = new Date()): string {
+  // NYT Wordle date is based on America/New_York.
+  return formatYYYYMMDDInTimeZone(today, 'America/New_York');
+}
+
 export async function getDailyWord(words: string[], baseDate: Date): Promise<string> {
   const url = process.env.EXPO_PUBLIC_DAILY_WORD_URL;
   if (url) {
@@ -60,6 +79,36 @@ export async function getDailyWord(words: string[], baseDate: Date): Promise<str
       // fall back to local algorithm
     }
   }
+
+  // Default: try the NYT Wordle daily solution first.
+  // - Web often needs a proxy due to CORS; /api/wordle/:date is provided for Vercel.
+  // - Native may be able to hit NYT directly.
+  const len = words[0]?.length ?? 5;
+  const date = getNYTWordleDateString();
+  const proxyBase = process.env.EXPO_PUBLIC_WORDLE_NYT_PROXY_URL;
+  const candidates: string[] = [];
+  if (proxyBase) candidates.push(`${proxyBase.replace(/\/$/, '')}/${date}`);
+  candidates.push(`/api/wordle/${date}`);
+
+  const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
+  if (!isBrowser) {
+    // Browsers cannot read this response due to CORS, but native runtimes usually can.
+    candidates.push(`https://www.nytimes.com/svc/wordle/v2/${date}.json`);
+  }
+
+  for (const candidate of candidates) {
+    try {
+      const resp = await fetch(candidate);
+      if (!resp.ok) continue;
+      const json = (await resp.json()) as { solution?: unknown };
+      const solution =
+        typeof json?.solution === 'string' ? json.solution.trim().toLowerCase() : '';
+      if (isValidGuess(solution, len)) return solution;
+    } catch {
+      // try next candidate
+    }
+  }
+
   return words[getDailyIndex(baseDate, words)];
 }
 
