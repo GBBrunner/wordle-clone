@@ -352,7 +352,7 @@ export default function ConnectionsPage() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
+  container: { flex: 1, padding: 12 },
   header: { alignItems: "center", gap: 6, paddingBottom: 10 },
   title: { fontSize: 28, fontWeight: "800" },
   subtitle: { fontSize: 14, opacity: 0.9 },
@@ -376,14 +376,15 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 10,
-    paddingVertical: 10,
+    gap: 8,
+    paddingVertical: 8,
     justifyContent: "center",
   },
   tile: {
     width: "22%",
-    minWidth: 78,
-    aspectRatio: 1,
+    minWidth: 70,
+    // 1x2 ratio (1 tall, 2 wide): width / height = 2
+    aspectRatio: 2,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
