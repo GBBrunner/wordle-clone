@@ -31,7 +31,7 @@ export default function Login() {
         color: colors.text,
       },
     }),
-    [colors]
+    [colors],
   );
 
   useEffect(() => {
@@ -58,7 +58,9 @@ export default function Login() {
           <Text style={dynamicStyles.subtitle}>Redirecting...</Text>
         ) : (
           <>
-            <Text style={dynamicStyles.subtitle}>Welcome! Sign in to continue.</Text>
+            <Text style={dynamicStyles.subtitle}>
+              Welcome! Sign in to continue.
+            </Text>
             <GoogleSignInLink />
           </>
         )}

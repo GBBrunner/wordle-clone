@@ -33,7 +33,7 @@ export default function Main() {
         backgroundColor: colors.tint,
       },
     }),
-    [colors]
+    [colors],
   );
 
   useEffect(() => {
@@ -62,7 +62,9 @@ export default function Main() {
   return (
     <SafeAreaView style={dynamicStyles.container}>
       <View style={styles.content}>
-        <Text style={dynamicStyles.title}>Welcome{name ? `, ${name}` : ""}</Text>
+        <Text style={dynamicStyles.title}>
+          Welcome{name ? `, ${name}` : ""}
+        </Text>
         {isClient ? null : (
           <Text style={dynamicStyles.subtitle}>This is the main page.</Text>
         )}
