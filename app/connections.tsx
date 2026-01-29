@@ -73,7 +73,8 @@ export default function ConnectionsPage() {
   const containerPadding = 16; // 8 * 2
   const gap = 5;
   const numColumns = 4;
-  const tileWidth = (width - containerPadding - gap * (numColumns - 1)) / numColumns;
+  const tileWidth =
+    (width - containerPadding - gap * (numColumns - 1)) / numColumns;
   const [puzzle, setPuzzle] = useState<ConnectionsPuzzle | null>(null);
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
