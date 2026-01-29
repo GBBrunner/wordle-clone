@@ -1,4 +1,6 @@
-// Final working Google OAuth callback
+// api/auth/callback/google.ts - Fixed version with Firebase Admin SDK
+import { adminDb } from "../../../lib/firebase-admin";
+
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {
     res.status(405).json({ error: "Method Not Allowed" });
@@ -107,7 +109,27 @@ export default async function handler(req: any, res: any) {
           headers: { Authorization: `Bearer ${accessToken}` },
         },
       );
-      if (profRes.ok) profile = await profRes.json();
+      if (profRes.ok) {
+        profile = await profRes.json();
+
+        // Save user to Firestore using Admin SDK
+        if (profile.sub) {
+          try {
+            await adminDb.collection("users").doc(profile.sub).set(
+              {
+                email: profile.email,
+                name: profile.name,
+                picture: profile.picture,
+                lastLogin: new Date().toISOString(),
+              },
+              { merge: true }
+            );
+          } catch (firestoreError: any) {
+            // Log but don't fail the auth flow if Firestore fails
+            console.error("Firestore error:", firestoreError.message);
+          }
+        }
+      }
     }
 
     // Build cookies
@@ -136,6 +158,7 @@ export default async function handler(req: any, res: any) {
     res.status(302).setHeader("Location", `/`);
     res.end();
   } catch (e: any) {
+    console.error("OAuth callback error:", e.message);
     res
       .status(302)
       .setHeader(
