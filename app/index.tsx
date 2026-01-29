@@ -1,12 +1,40 @@
 import { useAuth } from "@/hooks/use-auth";
+import { useAppTheme } from "@/lib/theme/context";
 import { Link } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 
 export default function Main() {
   const { signedIn, isClient } = useAuth();
+  const { colors } = useAppTheme();
   const [name, setName] = useState<string | null>(null);
   const [joined, setJoined] = useState<string | null>(null);
+
+  const dynamicStyles = useMemo(
+    () => ({
+      container: {
+        flex: 1,
+        padding: 24,
+        backgroundColor: colors.background,
+      },
+      title: {
+        fontSize: 28,
+        fontWeight: "800" as const,
+        color: colors.text,
+      },
+      subtitle: {
+        fontSize: 16,
+        color: colors.text,
+      },
+      cta: {
+        borderRadius: 8,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: colors.tint,
+      },
+    }),
+    [colors]
+  );
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -32,14 +60,14 @@ export default function Main() {
   // Avoid hydration mismatch: render exact same content during SSR as initial client render
   // Auth-dependent content only shown after client mount
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={dynamicStyles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Welcome{name ? `, ${name}` : ""}</Text>
+        <Text style={dynamicStyles.title}>Welcome{name ? `, ${name}` : ""}</Text>
         {isClient ? null : (
-          <Text style={styles.subtitle}>This is the main page.</Text>
+          <Text style={dynamicStyles.subtitle}>This is the main page.</Text>
         )}
         <Link href="/wordle" asChild>
-          <Pressable style={styles.cta}>
+          <Pressable style={dynamicStyles.cta}>
             <Text style={styles.ctaText}>Play Wordle</Text>
           </Pressable>
         </Link>
@@ -49,13 +77,12 @@ export default function Main() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#121213", padding: 24 },
+  container: { flex: 1, padding: 24 },
   content: { flex: 1, alignItems: "center", justifyContent: "center", gap: 12 },
-  title: { color: "#fff", fontSize: 28, fontWeight: "800" },
-  subtitle: { color: "#ddd", fontSize: 16 },
-  meta: { color: "#bbb", fontSize: 14 },
+  title: { fontSize: 28, fontWeight: "800" },
+  subtitle: { fontSize: 16 },
+  meta: { fontSize: 14 },
   cta: {
-    backgroundColor: "#6aaa64",
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
