@@ -148,7 +148,14 @@ export default async function handler(req: any, res: any) {
 
     const cookies: string[] = [];
     const oneWeek = 60 * 60 * 24 * 7;
+    // Auth cookies
     cookies.push(`signed_in=1; Path=/; HttpOnly; Max-Age=${oneWeek}`);
+    if (profile?.sub) {
+      // Persist Google subject ID for server-side Firestore writes
+      const userId = encodeURIComponent(profile.sub);
+      cookies.push(`user_id=${userId}; Path=/; HttpOnly; Max-Age=${oneWeek}`);
+    }
+    // Readable display cookies
     const display = encodeURIComponent(
       profile?.name || profile?.email || "User",
     );

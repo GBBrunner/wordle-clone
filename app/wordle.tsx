@@ -1,10 +1,10 @@
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
-import { db } from "@/lib/firebase";
 import { useAppTheme } from "@/lib/theme/context";
 import { readableTextOn } from "@/lib/theme/theme";
-import { doc, increment, setDoc } from "firebase/firestore";
+// On web, persistence is handled via serverless API using Firebase Admin.
+// We avoid client Firestore writes to prevent auth/rules issues.
 import React, { useEffect, useRef, useState } from "react";
 import {
     Platform,
@@ -28,7 +28,7 @@ type Mode = "daily" | "endless";
 
 export default function WordlePage() {
   const { colors } = useAppTheme();
-  const { user } = useAuth();
+  const { signedIn } = useAuth();
   const [mode, setMode] = useState<Mode>("daily");
   const [endlessLen, setEndlessLen] = useState<number>(5);
   const [secret, setSecret] = useState<string>("");
@@ -132,18 +132,14 @@ export default function WordlePage() {
     if (current === secret) {
       setDone(true);
       setMessage(mode === "daily" ? "You solved today's puzzle!" : "Nice!");
-      if (user?.sub) {
-        const userRef = doc(db, "users", user.sub);
-        const guessCount = guesses.length + 1;
-        setDoc(
-          userRef,
-          {
-            wordles_completed: increment(1),
-            [`wordle_in_${guessCount}`]: increment(1),
-          },
-          { merge: true },
-        );
-      }
+      // Record the win via serverless API (authenticated by HttpOnly cookies)
+      const guessCount = guesses.length + 1;
+      fetch("/api/wordle/win", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ guessCount }),
+      }).catch(() => {});
     } else if (guesses.length + 1 >= MAX_ROWS) {
       setDone(true);
       setMessage(`Out of tries. The word was ${secret.toUpperCase()}`);
