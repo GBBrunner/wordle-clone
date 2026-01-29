@@ -16,6 +16,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from "react-native";
 
 type Tile = {
@@ -68,6 +69,11 @@ function buildTiles(categories: ConnectionsCategory[]): Tile[] {
 
 export default function ConnectionsPage() {
   const { colors } = useAppTheme();
+  const { width } = useWindowDimensions();
+  const containerPadding = 16; // 8 * 2
+  const gap = 5;
+  const numColumns = 4;
+  const tileWidth = (width - containerPadding - gap * (numColumns - 1)) / numColumns;
   const [puzzle, setPuzzle] = useState<ConnectionsPuzzle | null>(null);
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -263,6 +269,7 @@ export default function ConnectionsPage() {
                   accessibilityRole="button"
                   style={[
                     styles.tile,
+                    { width: tileWidth },
                     { backgroundColor: colors.icon },
                     isSelected && { backgroundColor: colors.tint },
                   ]}
@@ -381,8 +388,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   tile: {
-    // Force a consistent 4 columns: each tile is 25% width.
-    width: "10%",
+    // Dynamic width calculated for 4 columns
     minWidth: 0,
     // 1x2 ratio (1 tall, 2 wide): width / height = 2
     aspectRatio: 2,
