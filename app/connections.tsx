@@ -1,21 +1,21 @@
 import {
-    fetchConnectionsPuzzle,
-    getNYTConnectionsDateString,
+  fetchConnectionsPuzzle,
+  getNYTConnectionsDateString,
 } from "@/lib/connections/api";
 import type {
-    ConnectionsCategory,
-    ConnectionsPuzzle,
+  ConnectionsCategory,
+  ConnectionsPuzzle,
 } from "@/lib/connections/types";
 import { useAppTheme } from "@/lib/theme/context";
 import { readableTextOn } from "@/lib/theme/theme";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Pressable,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 type Tile = {
@@ -376,22 +376,22 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 6,
-    paddingVertical: 6,
+    gap: 5,
+    paddingVertical: 4,
     justifyContent: "center",
   },
   tile: {
-    // Smaller tiles so all 4 rows fit on typical laptop viewports.
-    width: "20%",
-    minWidth: 52,
+    // Force a consistent 4 columns: each tile is 25% width.
+    width: "10%",
+    minWidth: 0,
     // 1x2 ratio (1 tall, 2 wide): width / height = 2
     aspectRatio: 2,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: 4,
+    paddingHorizontal: 3,
   },
-  tileText: { fontSize: 11, fontWeight: "800", textAlign: "center" },
+  tileText: { fontSize: 10, fontWeight: "800", textAlign: "center" },
   message: { textAlign: "center", paddingVertical: 4, fontSize: 13 },
   win: {
     textAlign: "center",
