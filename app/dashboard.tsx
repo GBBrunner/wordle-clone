@@ -1,5 +1,5 @@
-import { Colors } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
+import { useAppTheme } from "@/lib/theme/context";
 import { useEffect, useState } from "react";
 import {
     ActivityIndicator,
@@ -12,55 +12,9 @@ import {
 
 export default function Dashboard() {
   const { signedIn, isClient } = useAuth();
+  const { colors } = useAppTheme();
   const [name, setName] = useState<string | null>(null);
   const [joined, setJoined] = useState<string | null>(null);
-  const themeOptions = [
-    { key: "light", label: "Default Light" },
-    { key: "dark", label: "Default Dark" },
-    { key: "lightBlue", label: "Light Blue" },
-    { key: "darkBlue", label: "Dark Blue" },
-    { key: "lightPink", label: "Light Pink" },
-    { key: "darkRed", label: "Dark Red" },
-  ];
-  const themeColors = {
-    light: Colors.light,
-    dark: Colors.dark,
-    lightBlue: {
-      ...Colors.light,
-      background: "#e3f2fd",
-      text: "#0d47a1",
-      tint: "#1976d2",
-    },
-    darkBlue: {
-      ...Colors.dark,
-      background: "#0d1b2a",
-      text: "#90caf9",
-      tint: "#1976d2",
-    },
-    lightPink: {
-      ...Colors.light,
-      background: "#ffe4ec",
-      text: "#ad1457",
-      tint: "#d81b60",
-    },
-    darkRed: {
-      ...Colors.dark,
-      background: "#2d0000",
-      text: "#ff8a80",
-      tint: "#d32f2f",
-    },
-  };
-  const [theme, setTheme] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("dashboardTheme") || "light";
-    }
-    return "light";
-  });
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("dashboardTheme", theme);
-    }
-  }, [theme]);
 
   useEffect(() => {
     if (isClient && signedIn === false) {
@@ -116,74 +70,34 @@ export default function Dashboard() {
     <SafeAreaView
       style={[
         styles.container,
-        { backgroundColor: themeColors[theme].background },
+        { backgroundColor: colors.background },
       ]}
     >
       <View style={styles.content}>
-        <View style={{ marginBottom: 24, alignItems: "center" }}>
-          <Text style={[styles.title, { color: themeColors[theme].text }]}>
-            Theme Selector
-          </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: 8,
-              marginTop: 8,
-            }}
-          >
-            {themeOptions.map((opt) => (
-              <Pressable
-                key={opt.key}
-                style={{
-                  backgroundColor:
-                    theme === opt.key
-                      ? themeColors[theme].tint
-                      : themeColors[theme].icon,
-                  borderRadius: 6,
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                  margin: 2,
-                }}
-                onPress={() => setTheme(opt.key)}
-                accessibilityRole="button"
-              >
-                <Text
-                  style={{
-                    color: theme === opt.key ? "#fff" : themeColors[theme].text,
-                    fontWeight: "600",
-                  }}
-                >
-                  {opt.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
         {signedIn === null ? (
           <View style={{ alignItems: "center", gap: 12 }}>
-            <ActivityIndicator color={themeColors[theme].tint} />
-            <Text style={[styles.subtitle, { color: themeColors[theme].text }]}>
+            <ActivityIndicator color={colors.tint} />
+            <Text style={[styles.subtitle, { color: colors.text }]}>
               Checking your session...
             </Text>
           </View>
         ) : signedIn ? (
           <>
-            <Text style={[styles.title, { color: themeColors[theme].text }]}>
+            <Text style={[styles.title, { color: colors.text }]}>
               Dashboard
             </Text>
-            <Text style={[styles.subtitle, { color: themeColors[theme].text }]}>
+            <Text style={[styles.subtitle, { color: colors.text }]}>
               Welcome{name ? `, ${name}` : ""}!
             </Text>
             {joined ? (
-              <Text style={[styles.meta, { color: themeColors[theme].text }]}>
+              <Text style={[styles.meta, { color: colors.text }]}>
                 Joined: {new Date(joined).toLocaleDateString()}
               </Text>
             ) : null}
             <Pressable
               style={[
                 styles.signout,
-                { backgroundColor: themeColors[theme].tint },
+                { backgroundColor: colors.tint },
               ]}
               onPress={onSignOut}
               accessibilityRole="button"
@@ -192,7 +106,7 @@ export default function Dashboard() {
             </Pressable>
           </>
         ) : (
-          <Text style={[styles.subtitle, { color: themeColors[theme].text }]}>
+          <Text style={[styles.subtitle, { color: colors.text }]}>
             Redirecting...
           </Text>
         )}

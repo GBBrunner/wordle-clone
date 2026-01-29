@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { useAppTheme } from "@/lib/theme/context";
 import type { Evaluation } from "../lib/wordle/engine";
 
 type Props = {
@@ -17,6 +18,7 @@ export default function Board({
   rows = 6,
   cols = 5,
 }: Props) {
+  useAppTheme();
   const grid: {
     char: string;
     state: "empty" | "filled";
@@ -142,14 +144,23 @@ export default function Board({
               outputRange: ["0deg", "180deg"],
             });
             const key = `${r}-${c}`;
+            const isRevealedEval = !!(cell.eval && revealedMap[key]);
+            // Neutral tile styling for readability across all themes.
+            const tileBg = "#d3d6da";
+            const emptyBorder = "#878a8c";
+            const filledBorder = "#565758";
+            const tileTextColor = isRevealedEval ? "#fff" : "#11181C";
             return (
               <Animated.View
                 key={c}
                 style={[
                   styles.cell,
-                  styles[cell.state],
+                  {
+                    backgroundColor: tileBg,
+                    borderColor: cell.state === "filled" ? filledBorder : emptyBorder,
+                  },
                   // Apply eval color as soon as the cell's reveal animation starts
-                  cell.eval && revealedMap[key] ? styles[cell.eval] : null,
+                  isRevealedEval ? styles[cell.eval!] : null,
                   {
                     transform: [
                       { perspective: 600 },
@@ -159,7 +170,9 @@ export default function Board({
                   },
                 ]}
               >
-                <Text style={styles.cellText}>{cell.char}</Text>
+                <Text style={[styles.cellText, { color: tileTextColor }]}>
+                  {cell.char}
+                </Text>
               </Animated.View>
             );
           })}
@@ -176,14 +189,10 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderWidth: 2,
-    borderColor: "#444",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#111",
   },
-  cellText: { color: "#fff", fontSize: 22, fontWeight: "700" },
-  empty: {},
-  filled: { borderColor: "#888" },
+  cellText: { fontSize: 22, fontWeight: "700" },
   correct: { backgroundColor: "#6aaa64", borderColor: "#6aaa64" },
   present: { backgroundColor: "#c9b458", borderColor: "#c9b458" },
   absent: { backgroundColor: "#3a3a3c", borderColor: "#3a3a3c" },

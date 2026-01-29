@@ -1,5 +1,7 @@
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useAppTheme } from "@/lib/theme/context";
+import { readableTextOn } from "@/lib/theme/theme";
 
 const ROWS = [
   ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
@@ -13,6 +15,7 @@ type Props = {
 };
 
 export default function Keyboard({ onKey, keyStates = {} }: Props) {
+  const { colors } = useAppTheme();
   return (
     <View style={styles.kb}>
       {ROWS.map((row, ri) => (
@@ -20,13 +23,34 @@ export default function Keyboard({ onKey, keyStates = {} }: Props) {
           {row.map((key) => {
             const lower = key.toLowerCase();
             const state = keyStates[lower];
+            const neutralKeyBg = "#d3d6da";
+            const neutralKeyText = "#11181C";
+            const themedKeyBg = colors.tint;
+
+            // Only theme ENTER/DEL; letter keys stay neutral.
+            const bg = state
+              ? undefined
+              : key === "ENTER" || key === "DEL"
+                ? themedKeyBg
+                : neutralKeyBg;
+
+            // Universal text color for neutral keys; evaluated keys remain white.
+            const textColor = state
+              ? "#fff"
+              : key === "ENTER" || key === "DEL"
+                ? readableTextOn(themedKeyBg)
+                : neutralKeyText;
             return (
               <Pressable
                 key={key}
                 onPress={() => onKey(key)}
-                style={[styles.key, state && styles[state]]}
+                style={[
+                  styles.key,
+                  !state && { backgroundColor: bg },
+                  state && styles[state],
+                ]}
               >
-                <Text style={styles.keyText}>{key}</Text>
+                <Text style={[styles.keyText, { color: textColor }]}>{key}</Text>
               </Pressable>
             );
           })}
@@ -43,9 +67,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 12,
     borderRadius: 6,
-    backgroundColor: "#818384",
   },
-  keyText: { color: "#fff", fontWeight: "700" },
+  keyText: { fontWeight: "700" },
   correct: { backgroundColor: "#6aaa64" },
   present: { backgroundColor: "#c9b458" },
   absent: { backgroundColor: "#3a3a3c" },

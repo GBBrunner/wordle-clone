@@ -63,13 +63,22 @@ export default function GoogleSignInLink() {
       const urlWithState = buildGoogleAuthUrl(state);
       window.location.href = urlWithState!;
     };
+
     return (
-      <button onClick={handleClick} style={styles.webAnchor as any}>
-        <span style={styles.iconWrap as any}>
-          {WebGoogleIcon ? <WebGoogleIcon size={20} /> : null}
-        </span>
-        <span style={styles.label as any}>Sign in with Google</span>
-      </button>
+      <Pressable style={styles.button} onPress={handleClick} accessibilityRole="button">
+        {WebGoogleIcon ? (
+          // react-icons renders an svg element on web
+          <WebGoogleIcon size={20} style={{ marginRight: 8 }} />
+        ) : (
+          <AntDesign
+            name="google"
+            size={18}
+            color="#121212"
+            style={{ marginRight: 8 }}
+          />
+        )}
+        <Text style={styles.buttonText}>Sign in with Google</Text>
+      </Pressable>
     );
   }
 
@@ -103,17 +112,4 @@ const styles = StyleSheet.create({
   },
   buttonText: { color: "#121212", fontWeight: "600", fontSize: 16 },
   error: { color: "#ff6b6b", fontSize: 14, textAlign: "center" },
-  webAnchor: {
-    display: "inline-flex",
-    alignItems: "center",
-    textDecoration: "none",
-    backgroundColor: "#fff",
-    color: "#121212",
-    borderRadius: 8,
-    padding: "12px 16px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-    fontWeight: 600,
-  },
-  iconWrap: { marginRight: 8, display: "inline-flex", alignItems: "center" },
-  label: { fontSize: 16 },
 });

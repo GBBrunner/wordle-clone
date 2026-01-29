@@ -12,6 +12,8 @@ import Board from "../components/Board";
 import Keyboard from "../components/Keyboard";
 import { getAllowedGuessesSet, getWordsForLength } from "../data/words";
 import { evaluateGuess, getDailyWord, randomWord } from "../lib/wordle/engine";
+import { useAppTheme } from "@/lib/theme/context";
+import { readableTextOn } from "@/lib/theme/theme";
 
 const DAILY_WORD_LEN = 5;
 const MAX_ROWS = 6;
@@ -20,6 +22,7 @@ const BASE_DATE = new Date("2021-06-19");
 type Mode = "daily" | "endless";
 
 export default function WordlePage() {
+  const { colors } = useAppTheme();
   const [mode, setMode] = useState<Mode>("daily");
   const [endlessLen, setEndlessLen] = useState<number>(5);
   const [secret, setSecret] = useState<string>("");
@@ -140,21 +143,53 @@ export default function WordlePage() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Wordle (Daily + Endless)</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          Wordle (Daily + Endless)
+        </Text>
         <View style={styles.modeRow}>
           <Pressable
             onPress={() => setMode("daily")}
-            style={[styles.modeBtn, mode === "daily" && styles.modeActive]}
+            style={[
+              styles.modeBtn,
+              { backgroundColor: colors.icon },
+              mode === "daily" && { backgroundColor: colors.tint },
+            ]}
           >
-            <Text style={styles.modeText}>Daily</Text>
+            <Text
+              style={[
+                styles.modeText,
+                {
+                  color: readableTextOn(
+                    mode === "daily" ? colors.tint : colors.icon,
+                  ),
+                },
+              ]}
+            >
+              Daily
+            </Text>
           </Pressable>
           <Pressable
             onPress={() => setMode("endless")}
-            style={[styles.modeBtn, mode === "endless" && styles.modeActive]}
+            style={[
+              styles.modeBtn,
+              { backgroundColor: colors.icon },
+              mode === "endless" && { backgroundColor: colors.tint },
+            ]}
           >
-            <Text style={styles.modeText}>Endless</Text>
+            <Text
+              style={[
+                styles.modeText,
+                {
+                  color: readableTextOn(
+                    mode === "endless" ? colors.tint : colors.icon,
+                  ),
+                },
+              ]}
+            >
+              Endless
+            </Text>
           </Pressable>
         </View>
         {mode === "endless" && (
@@ -163,9 +198,24 @@ export default function WordlePage() {
               <Pressable
                 key={len}
                 onPress={() => setEndlessLen(len)}
-                style={[styles.lenBtn, endlessLen === len && styles.lenActive]}
+                style={[
+                  styles.lenBtn,
+                  { backgroundColor: colors.icon },
+                  endlessLen === len && { backgroundColor: colors.tint },
+                ]}
               >
-                <Text style={styles.modeText}>{len} Letters</Text>
+                <Text
+                  style={[
+                    styles.modeText,
+                    {
+                      color: readableTextOn(
+                        endlessLen === len ? colors.tint : colors.icon,
+                      ),
+                    },
+                  ]}
+                >
+                  {len} Letters
+                </Text>
               </Pressable>
             ))}
           </View>
@@ -181,19 +231,41 @@ export default function WordlePage() {
         />
       </View>
 
-      {!!message && <Text style={styles.message}>{message}</Text>}
+      {!!message && (
+        <Text style={[styles.message, { color: colors.text }]}>{message}</Text>
+      )}
 
       {!done ? (
         <Keyboard onKey={onKey} keyStates={keyStates} />
       ) : (
         <View style={{ gap: 8 }}>
           {mode === "daily" ? (
-            <Pressable onPress={startEndless} style={styles.cta}>
-              <Text style={styles.ctaText}>Play Endless Mode</Text>
+            <Pressable
+              onPress={startEndless}
+              style={[styles.cta, { backgroundColor: colors.tint }]}
+            >
+              <Text
+                style={[
+                  styles.ctaText,
+                  { color: readableTextOn(colors.tint) },
+                ]}
+              >
+                Play Endless Mode
+              </Text>
             </Pressable>
           ) : (
-            <Pressable onPress={newEndlessGame} style={styles.cta}>
-              <Text style={styles.ctaText}>New Endless Game</Text>
+            <Pressable
+              onPress={newEndlessGame}
+              style={[styles.cta, { backgroundColor: colors.tint }]}
+            >
+              <Text
+                style={[
+                  styles.ctaText,
+                  { color: readableTextOn(colors.tint) },
+                ]}
+              >
+                New Endless Game
+              </Text>
             </Pressable>
           )}
         </View>
@@ -218,34 +290,29 @@ export default function WordlePage() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#121213", padding: 16, gap: 12 },
+  container: { flex: 1, padding: 16, gap: 12 },
   header: { alignItems: "center", gap: 8 },
-  title: { color: "#fff", fontSize: 20, fontWeight: "800" },
+  title: { fontSize: 20, fontWeight: "800" },
   modeRow: { flexDirection: "row", gap: 8 },
   modeBtn: {
-    backgroundColor: "#3a3a3c",
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
-  modeActive: { backgroundColor: "#6aaa64" },
-  modeText: { color: "#fff", fontWeight: "700" },
+  modeText: { fontWeight: "700" },
   lenRow: { flexDirection: "row", gap: 6, marginTop: 8 },
   lenBtn: {
-    backgroundColor: "#3a3a3c",
     borderRadius: 6,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
-  lenActive: { backgroundColor: "#c9b458" },
   boardWrap: { alignItems: "center" },
-  message: { color: "#fff", textAlign: "center" },
+  message: { textAlign: "center" },
   cta: {
-    backgroundColor: "#6aaa64",
     borderRadius: 6,
     padding: 12,
     alignItems: "center",
   },
-  ctaText: { color: "#fff", fontWeight: "700" },
+  ctaText: { fontWeight: "700" },
   hiddenInput: { height: 0, width: 0 },
 });

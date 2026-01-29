@@ -6,15 +6,25 @@ import {
 import { Link, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
+import { ThemeDropdown } from "@/components/ThemeDropdown";
 import { UserIcon } from "@/components/ui/user-icon";
 import { Colors } from "@/constants/theme";
 import { useAuth } from "@/hooks/use-auth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { AppThemeProvider, useAppTheme } from "@/lib/theme/context";
 import { Platform, Pressable, View } from "react-native";
 
 // Removed anchor to tabs; focusing app on Wordle screen.
 
 export default function RootLayout() {
+  return (
+    <AppThemeProvider>
+      <RootLayoutInner />
+    </AppThemeProvider>
+  );
+}
+
+function RootLayoutInner() {
   const colorScheme = useColorScheme();
 
   return (
@@ -24,7 +34,7 @@ export default function RootLayout() {
           name="index"
           options={{
             title: "Home",
-            headerRight: () => <HeaderUserLink />,
+            headerRight: () => <HeaderRight />,
           }}
         />
         <Stack.Screen
@@ -32,21 +42,21 @@ export default function RootLayout() {
           options={{
             title: "Wordle",
             // Enable default back arrow to previous screen (Home)
-            headerRight: () => <HeaderUserLink />,
+            headerRight: () => <HeaderRight />,
           }}
         />
         <Stack.Screen
           name="dashboard"
           options={{
             title: "Dashboard",
-            headerRight: () => <HeaderUserLink />,
+            headerRight: () => <HeaderRight />,
           }}
         />
         <Stack.Screen
           name="login"
           options={{
             title: "Login",
-            headerRight: () => <HeaderUserLink />,
+            headerRight: () => <HeaderRight />,
           }}
         />
         <Stack.Screen
@@ -59,9 +69,19 @@ export default function RootLayout() {
   );
 }
 
+function HeaderRight() {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+      <ThemeDropdown compact />
+      <HeaderUserLink />
+    </View>
+  );
+}
+
 function HeaderUserLink() {
   const colorScheme = useColorScheme();
   const { signedIn, isClient } = useAuth();
+  const { colors } = useAppTheme();
 
   // Avoid hydration mismatch: render empty placeholder during SSR
   if (!isClient) {
@@ -73,14 +93,14 @@ function HeaderUserLink() {
     // Use a plain anchor on web to avoid RN touch event issues
     return (
       <Link href={href}>
-        <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
+        <UserIcon size={32} color={colors?.tint ?? Colors[colorScheme ?? "light"].tint} />
       </Link>
     );
   }
   return (
     <Link href={href} asChild>
       <Pressable accessibilityRole="button" hitSlop={8}>
-        <UserIcon size={32} color={Colors[colorScheme ?? "light"].tint} />
+        <UserIcon size={32} color={colors?.tint ?? Colors[colorScheme ?? "light"].tint} />
       </Pressable>
     </Link>
   );
