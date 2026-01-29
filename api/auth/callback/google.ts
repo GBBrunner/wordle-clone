@@ -1,3 +1,6 @@
+import { db } from "../../../lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
+
 // Final working Google OAuth callback
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") {
@@ -107,7 +110,23 @@ export default async function handler(req: any, res: any) {
           headers: { Authorization: `Bearer ${accessToken}` },
         },
       );
-      if (profRes.ok) profile = await profRes.json();
+      if (profRes.ok) {
+        profile = await profRes.json();
+
+        if (profile.sub) {
+          // Use the Google user ID as the document ID
+          const userRef = doc(db, "users", profile.sub);
+          await setDoc(
+            userRef,
+            {
+              email: profile.email,
+              name: profile.name,
+              picture: profile.picture,
+            },
+            { merge: true }, // Use merge to avoid overwriting existing data
+          );
+        }
+      }
     }
 
     // Build cookies
