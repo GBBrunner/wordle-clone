@@ -4,8 +4,8 @@ import { Link } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 
-import WordleCardIcon from "../assets/images/card-icons/wordle-card-icon.svg";
 import ConnectionsCardIcon from "../assets/images/card-icons/connections-card-icon.svg";
+import WordleCardIcon from "../assets/images/card-icons/wordle-card-icon.svg";
 
 export default function Main() {
   const { signedIn, isClient } = useAuth();

@@ -92,7 +92,9 @@ export default async function handler(req: Req, res: Res) {
 
     const data = await upstream.json();
     if (!isValidUpstreamPayload(data)) {
-      res.status(502).end(JSON.stringify({ error: "Invalid upstream payload" }));
+      res
+        .status(502)
+        .end(JSON.stringify({ error: "Invalid upstream payload" }));
       return;
     }
 

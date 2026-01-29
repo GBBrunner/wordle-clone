@@ -1,21 +1,21 @@
-import { useAppTheme } from "@/lib/theme/context";
-import { readableTextOn } from "@/lib/theme/theme";
 import {
-  fetchConnectionsPuzzle,
-  getNYTConnectionsDateString,
+    fetchConnectionsPuzzle,
+    getNYTConnectionsDateString,
 } from "@/lib/connections/api";
 import type {
-  ConnectionsCategory,
-  ConnectionsPuzzle,
+    ConnectionsCategory,
+    ConnectionsPuzzle,
 } from "@/lib/connections/types";
+import { useAppTheme } from "@/lib/theme/context";
+import { readableTextOn } from "@/lib/theme/theme";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    Pressable,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 type Tile = {
@@ -163,7 +163,9 @@ export default function ConnectionsPage() {
     }
 
     const categoryIndex = selectedTiles[0].categoryIndex;
-    const isMatch = selectedTiles.every((t) => t.categoryIndex === categoryIndex);
+    const isMatch = selectedTiles.every(
+      (t) => t.categoryIndex === categoryIndex,
+    );
 
     if (!isMatch) {
       setMistakesLeft((m) => Math.max(0, m - 1));
@@ -171,7 +173,9 @@ export default function ConnectionsPage() {
       return;
     }
 
-    const title = normalizeCategoryTitle(puzzle.categories[categoryIndex]?.title ?? "");
+    const title = normalizeCategoryTitle(
+      puzzle.categories[categoryIndex]?.title ?? "",
+    );
     const color = GROUP_COLORS[categoryIndex] ?? colors.tint;
 
     setSolved((prev) => {
@@ -186,7 +190,9 @@ export default function ConnectionsPage() {
   const isComplete = solved.length === 4;
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Connections</Text>
         <Text style={[styles.subtitle, { color: colors.text }]}>
@@ -197,18 +203,26 @@ export default function ConnectionsPage() {
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.tint} />
-          <Text style={[styles.subtitle, { color: colors.text }]}>Loading puzzle...</Text>
+          <Text style={[styles.subtitle, { color: colors.text }]}>
+            Loading puzzle...
+          </Text>
         </View>
       ) : error ? (
         <View style={styles.center}>
           <Text style={[styles.error, { color: colors.text }]}>{error}</Text>
-          <Text style={[styles.subtitle, { color: colors.text }]}>Try reloading.</Text>
+          <Text style={[styles.subtitle, { color: colors.text }]}>
+            Try reloading.
+          </Text>
         </View>
       ) : (
         <>
           <View style={styles.metaRow}>
-            <Text style={[styles.meta, { color: colors.text }]}>Mistakes left: {mistakesLeft}</Text>
-            <Text style={[styles.meta, { color: colors.text }]}>Selected: {selected.size}/4</Text>
+            <Text style={[styles.meta, { color: colors.text }]}>
+              Mistakes left: {mistakesLeft}
+            </Text>
+            <Text style={[styles.meta, { color: colors.text }]}>
+              Selected: {selected.size}/4
+            </Text>
           </View>
 
           {solved.length > 0 ? (
@@ -218,10 +232,20 @@ export default function ConnectionsPage() {
                   key={g.title}
                   style={[styles.solvedGroup, { backgroundColor: g.color }]}
                 >
-                  <Text style={[styles.solvedTitle, { color: readableTextOn(g.color) }]}>
+                  <Text
+                    style={[
+                      styles.solvedTitle,
+                      { color: readableTextOn(g.color) },
+                    ]}
+                  >
                     {g.title}
                   </Text>
-                  <Text style={[styles.solvedWords, { color: readableTextOn(g.color) }]}>
+                  <Text
+                    style={[
+                      styles.solvedWords,
+                      { color: readableTextOn(g.color) },
+                    ]}
+                  >
                     {g.tiles.map((t) => t.content).join(" • ")}
                   </Text>
                 </View>
@@ -246,7 +270,11 @@ export default function ConnectionsPage() {
                   <Text
                     style={[
                       styles.tileText,
-                      { color: isSelected ? readableTextOn(colors.tint) : colors.text },
+                      {
+                        color: isSelected
+                          ? readableTextOn(colors.tint)
+                          : colors.text,
+                      },
                     ]}
                     numberOfLines={2}
                   >
@@ -258,13 +286,19 @@ export default function ConnectionsPage() {
           </View>
 
           {!!message && (
-            <Text style={[styles.message, { color: colors.text }]}>{message}</Text>
+            <Text style={[styles.message, { color: colors.text }]}>
+              {message}
+            </Text>
           )}
 
           {isComplete ? (
-            <Text style={[styles.win, { color: colors.text }]}>You solved it!</Text>
+            <Text style={[styles.win, { color: colors.text }]}>
+              You solved it!
+            </Text>
           ) : mistakesLeft <= 0 ? (
-            <Text style={[styles.win, { color: colors.text }]}>Out of mistakes.</Text>
+            <Text style={[styles.win, { color: colors.text }]}>
+              Out of mistakes.
+            </Text>
           ) : null}
 
           <View style={styles.controls}>
@@ -273,7 +307,12 @@ export default function ConnectionsPage() {
               style={[styles.controlBtn, { backgroundColor: colors.icon }]}
               accessibilityRole="button"
             >
-              <Text style={[styles.controlText, { color: readableTextOn(colors.icon) }]}>
+              <Text
+                style={[
+                  styles.controlText,
+                  { color: readableTextOn(colors.icon) },
+                ]}
+              >
                 Deselect
               </Text>
             </Pressable>
@@ -282,7 +321,12 @@ export default function ConnectionsPage() {
               style={[styles.controlBtn, { backgroundColor: colors.icon }]}
               accessibilityRole="button"
             >
-              <Text style={[styles.controlText, { color: readableTextOn(colors.icon) }]}>
+              <Text
+                style={[
+                  styles.controlText,
+                  { color: readableTextOn(colors.icon) },
+                ]}
+              >
                 Shuffle
               </Text>
             </Pressable>
@@ -291,7 +335,12 @@ export default function ConnectionsPage() {
               style={[styles.controlBtn, { backgroundColor: colors.tint }]}
               accessibilityRole="button"
             >
-              <Text style={[styles.controlText, { color: readableTextOn(colors.tint) }]}>
+              <Text
+                style={[
+                  styles.controlText,
+                  { color: readableTextOn(colors.tint) },
+                ]}
+              >
                 Submit
               </Text>
             </Pressable>
@@ -342,8 +391,18 @@ const styles = StyleSheet.create({
   },
   tileText: { fontSize: 12, fontWeight: "800", textAlign: "center" },
   message: { textAlign: "center", paddingVertical: 6, fontSize: 14 },
-  win: { textAlign: "center", paddingVertical: 6, fontSize: 16, fontWeight: "800" },
-  controls: { flexDirection: "row", justifyContent: "center", gap: 10, paddingTop: 6 },
+  win: {
+    textAlign: "center",
+    paddingVertical: 6,
+    fontSize: 16,
+    fontWeight: "800",
+  },
+  controls: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 10,
+    paddingTop: 6,
+  },
   controlBtn: { borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12 },
   controlText: { fontWeight: "800" },
 });
