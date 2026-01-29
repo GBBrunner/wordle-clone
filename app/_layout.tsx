@@ -38,6 +38,13 @@ function RootLayoutInner() {
           }}
         />
         <Stack.Screen
+          name="connections"
+          options={{
+            title: "Connections",
+            headerRight: () => <HeaderRight />,
+          }}
+        />
+        <Stack.Screen
           name="wordle"
           options={{
             title: "Wordle",

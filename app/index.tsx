@@ -4,7 +4,8 @@ import { Link } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, SafeAreaView, StyleSheet, Text, View } from "react-native";
 
-import WordleCardIcon from "../assets/images/wordle-card-icon.svg";
+import WordleCardIcon from "../assets/images/card-icons/wordle-card-icon.svg";
+import ConnectionsCardIcon from "../assets/images/card-icons/connections-card-icon.svg";
 
 export default function Main() {
   const { signedIn, isClient } = useAuth();
@@ -79,6 +80,18 @@ export default function Main() {
                 style={{ marginRight: 12 }}
               />
               <Text style={styles.ctaText}>Play Wordle</Text>
+            </View>
+          </Pressable>
+        </Link>
+        <Link href="/connections" asChild>
+          <Pressable style={dynamicStyles.cta}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <ConnectionsCardIcon
+                width={50}
+                height={50}
+                style={{ marginRight: 12 }}
+              />
+              <Text style={styles.ctaText}>Play Connections</Text>
             </View>
           </Pressable>
         </Link>
