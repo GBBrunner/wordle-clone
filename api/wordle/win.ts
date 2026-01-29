@@ -60,7 +60,9 @@ export default async function handler(req: Req, res: Res) {
     await userRef.set(
       {
         wordles_completed: (admin.firestore as any).FieldValue.increment(1),
-        ["wordle_in_" + guessCount]: (admin.firestore as any).FieldValue.increment(1),
+        ["wordle_in_" + guessCount]: (
+          admin.firestore as any
+        ).FieldValue.increment(1),
       },
       { merge: true },
     );
