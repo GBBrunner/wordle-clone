@@ -1,19 +1,19 @@
 import React, {
-    createContext,
-    useCallback,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
 } from "react";
 
 import {
-    baseColorSchemeForTheme,
-    isThemeKey,
-    THEME_STORAGE_KEY,
-    themeColors,
-    ThemeKey,
-    themeOptions,
+  baseColorSchemeForTheme,
+  isThemeKey,
+  THEME_STORAGE_KEY,
+  themeColors,
+  ThemeKey,
+  themeOptions,
 } from "./theme";
 
 type AppThemeContextValue = {
@@ -36,9 +36,13 @@ function readStoredTheme(): ThemeKey {
 
 export function AppThemeProvider({ children }: { children: React.ReactNode }) {
   const [hasHydrated, setHasHydrated] = useState(false);
-  const [theme, setThemeState] = useState<ThemeKey>(() => readStoredTheme());
+  // Always initialize with "light" to match SSR; read localStorage after hydration
+  const [theme, setThemeState] = useState<ThemeKey>("light");
 
   useEffect(() => {
+    // Read stored theme only on client after mount to avoid hydration mismatch
+    const storedTheme = readStoredTheme();
+    setThemeState(storedTheme);
     setHasHydrated(true);
   }, []);
 

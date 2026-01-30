@@ -3,6 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
+    "q": "expo export -p web && dotenv -e .env.local -- npx vercel --prod --yes",
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
@@ -19,6 +20,7 @@
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/elements": "^2.6.3",
     "@react-navigation/native": "^7.1.8",
+    "@tsparticles/react": "^3.0.0",
     "expo": "~54.0.32",
     "expo-constants": "~18.0.13",
     "expo-font": "~14.0.11",
@@ -45,6 +47,7 @@
     "react-native-svg-transformer": "^1.5.3",
     "react-native-web": "^0.21.2",
     "react-native-worklets": "0.5.1",
+    "tsparticles": "^3.9.1",
     "vercel": "^50.9.1"
   },
   "devDependencies": {

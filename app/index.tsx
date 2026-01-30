@@ -66,9 +66,9 @@ export default function Main() {
     <SafeAreaView style={dynamicStyles.container}>
       <View style={styles.content}>
         <Text style={dynamicStyles.title}>
-          Welcome{name ? `, ${name}` : ""}
+          {isClient && name ? `Welcome, ${name}` : "Welcome"}
         </Text>
-        {isClient ? null : (
+        {!isClient && (
           <Text style={dynamicStyles.subtitle}>This is the main page.</Text>
         )}
         <Link href="/wordle" asChild>

@@ -1,0 +1,521 @@
+connections debug 
+Object { errorType: "string", errorValue: "", puzzleType: "object", puzzleValue: null, tilesLength: 0 }
+​
+errorType: "string"
+​
+errorValue: ""
+​
+puzzleType: "object"
+​
+puzzleValue: null
+​
+tilesLength: 0
+​
+<prototype>: Object { … }
+​​
+__defineGetter__: function __defineGetter__()
+​​
+__defineSetter__: function __defineSetter__()
+​​
+__lookupGetter__: function __lookupGetter__()
+​​
+__lookupSetter__: function __lookupSetter__()
+​​
+__proto__: 
+​​
+constructor: function Object()
+​​​
+assign: function assign()
+​​​
+create: function create()
+​​​
+defineProperties: function defineProperties()
+​​​
+defineProperty: function defineProperty()
+​​​
+entries: function entries()
+​​​
+freeze: function freeze()
+​​​
+fromEntries: function fromEntries()
+​​​
+getOwnPropertyDescriptor: function getOwnPropertyDescriptor()
+​​​
+getOwnPropertyDescriptors: function getOwnPropertyDescriptors()
+​​​
+getOwnPropertyNames: function getOwnPropertyNames()
+​​​
+getOwnPropertySymbols: function getOwnPropertySymbols()
+​​​
+getPrototypeOf: function getPrototypeOf()
+​​​
+groupBy: function groupBy()
+​​​
+hasOwn: function hasOwn()
+​​​
+is: function is()
+​​​
+isExtensible: function isExtensible()
+​​​
+isFrozen: function isFrozen()
+​​​
+isSealed: function isSealed()
+​​​
+keys: function keys()
+​​​
+length: 1
+​​​
+name: "Object"
+​​​
+preventExtensions: function preventExtensions()
+​​​
+prototype: Object { … }
+​​​
+seal: function seal()
+​​​
+setPrototypeOf: function setPrototypeOf()
+​​​
+values: function values()
+​​​
+<prototype>: function ()
+​​
+hasOwnProperty: function hasOwnProperty()
+​​​
+length: 1
+​​​
+name: "hasOwnProperty"
+​​​
+<prototype>: function ()
+​​
+isPrototypeOf: function isPrototypeOf()
+​​​
+length: 1
+​​​
+name: "isPrototypeOf"
+​​​
+<prototype>: function ()
+​​
+propertyIsEnumerable: function propertyIsEnumerable()
+​​​
+length: 1
+​​​
+name: "propertyIsEnumerable"
+​​​
+<prototype>: function ()
+​​
+toLocaleString: function toLocaleString()
+​​​
+length: 0
+​​​
+name: "toLocaleString"
+​​​
+<prototype>: function ()
+​​
+toString: function toString()
+​​​
+length: 0
+​​​
+name: "toString"
+​​​
+<prototype>: function ()
+​​
+valueOf: function valueOf()
+​​​
+length: 0
+​​​
+name: "valueOf"
+​​​
+<prototype>: function ()
+​​
+<get __proto__()>: function __proto__()
+​​
+<set __proto__()>: function __proto__()
+​​​
+length: 1
+​​​
+name: "set __proto__"
+​​​
+<prototype>: function ()
+entry-a70159d161ab98de15e44e885dedb0aa.js:817:1835
+
+--------------------------------------------------------------------------------
+
+connections debug 
+Object { errorType: "string", errorValue: "", puzzleType: "object", puzzleValue: {…}, tilesLength: 16 }
+​
+errorType: "string"
+​
+errorValue: ""
+​
+puzzleType: "object"
+​
+puzzleValue: Object { id: 1021, print_date: "2026-01-30" }
+​​
+id: 1021
+​​
+print_date: "2026-01-30"
+​​
+<prototype>: Object { … }
+​
+tilesLength: 16
+​
+<prototype>: Object { … }
+​​
+__defineGetter__: function __defineGetter__()
+​​
+__defineSetter__: function __defineSetter__()
+​​
+__lookupGetter__: function __lookupGetter__()
+​​
+__lookupSetter__: function __lookupSetter__()
+​​
+__proto__: 
+​​
+constructor: function Object()
+​​
+hasOwnProperty: function hasOwnProperty()
+​​
+isPrototypeOf: function isPrototypeOf()
+​​
+propertyIsEnumerable: function propertyIsEnumerable()
+​​
+toLocaleString: function toLocaleString()
+​​
+toString: function toString()
+​​
+valueOf: function valueOf()
+​​
+<get __proto__()>: function __proto__()
+​​​
+length: 0
+​​​
+name: "get __proto__"
+​​​
+<prototype>: function ()
+​​​​
+apply: function apply()
+​​​​
+arguments: 
+​​​​
+bind: function bind()
+​​​​
+call: function call()
+​​​​
+caller: 
+​​​​
+constructor: function Function()
+​​​​
+length: 0
+​​​​
+name: ""
+​​​​
+toString: function toString()
+​​​​
+Symbol(Symbol.hasInstance): function Symbol.hasInstance()
+​​​​
+<get arguments()>: function arguments()
+​​​​​
+length: 0
+​​​​​
+name: "get arguments"
+​​​​​
+<prototype>: function ()
+​​​​
+<set arguments()>: function arguments()
+​​​​​
+length: 1
+​​​​​
+name: "set arguments"
+​​​​​
+<prototype>: function ()
+​​​​
+<get caller()>: function caller()
+​​​​​
+length: 0
+​​​​​
+name: "get caller"
+​​​​​
+<prototype>: function ()
+​​​​
+<set caller()>: function caller()
+​​​​​
+length: 1
+​​​​​
+name: "set caller"
+​​​​​
+<prototype>: function ()
+​​​​
+<prototype>: Object { … }
+​​​​​
+__defineGetter__: function __defineGetter__()
+​​​​​
+__defineSetter__: function __defineSetter__()
+​​​​​
+__lookupGetter__: function __lookupGetter__()
+​​​​​
+__lookupSetter__: function __lookupSetter__()
+​​​​​
+__proto__: 
+​​​​​
+constructor: function Object()
+​​​​​
+hasOwnProperty: function hasOwnProperty()
+​​​​​
+isPrototypeOf: function isPrototypeOf()
+​​​​​
+propertyIsEnumerable: function propertyIsEnumerable()
+​​​​​
+toLocaleString: function toLocaleString()
+​​​​​
+toString: function toString()
+​​​​​
+valueOf: function valueOf()
+​​​​​
+<get __proto__()>: function __proto__()
+​​​​​
+<set __proto__()>: function __proto__()
+​​
+<set __proto__()>: function __proto__()
+​​​
+length: 1
+​​​
+name: "set __proto__"
+​​​
+<prototype>: function ()
+​​​​
+apply: function apply()
+​​​​
+arguments: 
+​​​​
+bind: function bind()
+​​​​
+call: function call()
+​​​​
+caller: 
+​​​​
+constructor: function Function()
+​​​​
+length: 0
+​​​​
+name: ""
+​​​​
+toString: function toString()
+​​​​
+Symbol(Symbol.hasInstance): function Symbol.hasInstance()
+​​​​
+<get arguments()>: function arguments()
+​​​​​
+length: 0
+​​​​​
+name: "get arguments"
+​​​​​
+<prototype>: function ()
+​​​​
+<set arguments()>: function arguments()
+​​​​​
+length: 1
+​​​​​
+name: "set arguments"
+​​​​​
+<prototype>: function ()
+​​​​​​
+apply: function apply()
+​​​​​​
+arguments: 
+​​​​​​
+bind: function bind()
+​​​​​​
+call: function call()
+​​​​​​
+caller: 
+​​​​​​
+constructor: function Function()
+​​​​​​
+length: 0
+​​​​​​
+name: ""
+​​​​​​
+toString: function toString()
+​​​​​​
+Symbol(Symbol.hasInstance): function Symbol.hasInstance()
+​​​​​​
+<get arguments()>: function arguments()
+​​​​​​​
+length: 0
+​​​​​​​
+name: "get arguments"
+​​​​​​​
+<prototype>: function ()
+​​​​​​
+<set arguments()>: function arguments()
+​​​​​​​
+length: 1
+​​​​​​​
+name: "set arguments"
+​​​​​​​
+<prototype>: function ()
+​​​​​​
+<get caller()>: function caller()
+​​​​​​​
+length: 0
+​​​​​​​
+name: "get caller"
+​​​​​​​
+<prototype>: function ()
+​​​​​​
+<set caller()>: function caller()
+​​​​​​​
+length: 1
+​​​​​​​
+name: "set caller"
+​​​​​​​
+<prototype>: function ()
+​​​​​​
+<prototype>: Object { … }
+​​​​​​​
+__defineGetter__: function __defineGetter__()
+​​​​​​​
+__defineSetter__: function __defineSetter__()
+​​​​​​​
+__lookupGetter__: function __lookupGetter__()
+​​​​​​​
+__lookupSetter__: function __lookupSetter__()
+​​​​​​​
+__proto__: 
+​​​​​​​
+constructor: function Object()
+​​​​​​​
+hasOwnProperty: function hasOwnProperty()
+​​​​​​​
+isPrototypeOf: function isPrototypeOf()
+​​​​​​​
+propertyIsEnumerable: function propertyIsEnumerable()
+​​​​​​​
+toLocaleString: function toLocaleString()
+​​​​​​​
+toString: function toString()
+​​​​​​​
+valueOf: function valueOf()
+​​​​​​​
+<get __proto__()>: function __proto__()
+​​​​​​​​
+length: 0
+​​​​​​​​
+name: "get __proto__"
+​​​​​​​​
+<prototype>: function ()
+​​​​​​​​​
+apply: function apply()
+​​​​​​​​​
+arguments: 
+​​​​​​​​​
+bind: function bind()
+​​​​​​​​​
+call: function call()
+​​​​​​​​​
+caller: 
+​​​​​​​​​
+constructor: function Function()
+​​​​​​​​​
+length: 0
+​​​​​​​​​
+name: ""
+​​​​​​​​​
+toString: function toString()
+​​​​​​​​​
+Symbol(Symbol.hasInstance): function Symbol.hasInstance()
+​​​​​​​​​
+<get arguments()>: function arguments()
+​​​​​​​​​
+<set arguments()>: function arguments()
+​​​​​​​​​
+<get caller()>: function caller()
+​​​​​​​​​
+<set caller()>: function caller()
+​​​​​​​​​
+<prototype>: Object { … }
+​​​​​​​
+<set __proto__()>: function __proto__()
+​​​​
+<get caller()>: function caller()
+​​​​​
+length: 0
+​​​​​
+name: "get caller"
+​​​​​
+<prototype>: function ()
+​​​​​​
+apply: function apply()
+​​​​​​
+arguments: 
+​​​​​​
+bind: function bind()
+​​​​​​
+call: function call()
+​​​​​​
+caller: 
+​​​​​​
+constructor: function Function()
+​​​​​​
+length: 0
+​​​​​​
+name: ""
+​​​​​​
+toString: function toString()
+​​​​​​
+Symbol(Symbol.hasInstance): function Symbol.hasInstance()
+​​​​​​
+<get arguments()>: function arguments()
+​​​​​​
+<set arguments()>: function arguments()
+​​​​​​
+<get caller()>: function caller()
+​​​​​​
+<set caller()>: function caller()
+​​​​​​
+<prototype>: Object { … }
+​​​​
+<set caller()>: function caller()
+​​​​​
+length: 1
+​​​​​
+name: "set caller"
+​​​​​
+<prototype>: function ()
+​​​​
+<prototype>: Object { … }
+​​​​​
+__defineGetter__: function __defineGetter__()
+​​​​​
+__defineSetter__: function __defineSetter__()
+​​​​​
+__lookupGetter__: function __lookupGetter__()
+​​​​​
+__lookupSetter__: function __lookupSetter__()
+​​​​​
+__proto__: 
+​​​​​
+constructor: function Object()
+​​​​​
+hasOwnProperty: function hasOwnProperty()
+​​​​​
+isPrototypeOf: function isPrototypeOf()
+​​​​​
+propertyIsEnumerable: function propertyIsEnumerable()
+​​​​​
+toLocaleString: function toLocaleString()
+​​​​​
+toString: function toString()
+​​​​​
+valueOf: function valueOf()
+​​​​​
+<get __proto__()>: function __proto__()
+​​​​​
+<set __proto__()>: function __proto__()
+​​​​​​
+length: 1
+​​​​​​
+name: "set __proto__"
+​​​​​​
+<prototype>: function ()
+entry-a70159d161ab98de15e44e885dedb0aa.js:817:1835

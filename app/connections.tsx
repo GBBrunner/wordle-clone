@@ -1,23 +1,161 @@
+"use client";
 import {
-    fetchConnectionsPuzzle,
-    getNYTConnectionsDateString,
+  fetchConnectionsPuzzle,
+  getNYTConnectionsDateString,
 } from "@/lib/connections/api";
 import type {
-    ConnectionsCategory,
-    ConnectionsPuzzle,
+  ConnectionsCategory,
+  ConnectionsPuzzle,
 } from "@/lib/connections/types";
+import { useAuth } from "@/hooks/use-auth";
 import { useAppTheme } from "@/lib/theme/context";
 import { readableTextOn } from "@/lib/theme/theme";
 import React, { useEffect, useMemo, useState } from "react";
+import { useRouter } from "expo-router";
+import { FiArrowLeft } from "react-icons/fi";
 import {
-    ActivityIndicator,
-    Pressable,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    View,
-    useWindowDimensions,
+  ActivityIndicator,
+  Modal,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
 } from "react-native";
+import StatsChart from "../components/StatsChart";
+function stringifyError(value: any, fallback = "") {
+  if (typeof value === "string" || typeof value === "number")
+    return String(value);
+  if (!value) return fallback;
+  if (typeof value === "object") {
+    // Prefer Error.message when available
+    if ("message" in value && typeof (value as any).message === "string") {
+      return (value as any).message;
+    }
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return String(value);
+    }
+  }
+  return String(value);
+}
+
+type ConnectionsProgress = {
+  mistakesLeft: number;
+  solvedCategoryIndexes: number[];
+};
+
+type ConnectionsStats = {
+  games_played: number;
+  connections_completed: number;
+  winRate: number;
+  distribution: Record<string, number>;
+};
+
+const CONNECTIONS_PROGRESS_KEY_PREFIX = "connections_progress_";
+const CONNECTIONS_STATS_KEY = "connections_stats";
+
+function safeParseJSON<T>(raw: string | null): T | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+function isBrowserStorageAvailable() {
+  return (
+    Platform.OS === "web" &&
+    typeof window !== "undefined" &&
+    typeof window.localStorage !== "undefined"
+  );
+}
+
+function getLocalProgressKey(d: string) {
+  return `${CONNECTIONS_PROGRESS_KEY_PREFIX}${d}`;
+}
+
+function loadLocalProgress(d: string): ConnectionsProgress | null {
+  if (!isBrowserStorageAvailable()) return null;
+  const parsed = safeParseJSON<any>(window.localStorage.getItem(getLocalProgressKey(d)));
+  const mistakesLeft = Number(parsed?.mistakesLeft);
+  const solvedCategoryIndexes = parsed?.solvedCategoryIndexes;
+  if (!Number.isFinite(mistakesLeft) || mistakesLeft < 0 || mistakesLeft > 4)
+    return null;
+  if (
+    !Array.isArray(solvedCategoryIndexes) ||
+    !solvedCategoryIndexes.every(
+      (x: any) => Number.isInteger(x) && Number.isFinite(x) && x >= 0 && x <= 3,
+    )
+  ) {
+    return null;
+  }
+  return {
+    mistakesLeft,
+    solvedCategoryIndexes: Array.from(new Set(solvedCategoryIndexes)).sort(
+      (a, b) => a - b,
+    ),
+  };
+}
+
+function saveLocalProgress(d: string, progress: ConnectionsProgress) {
+  if (!isBrowserStorageAvailable()) return;
+  try {
+    window.localStorage.setItem(getLocalProgressKey(d), JSON.stringify(progress));
+  } catch {
+    // ignore
+  }
+}
+
+function loadLocalStats(): ConnectionsStats {
+  const base: ConnectionsStats = {
+    games_played: 0,
+    connections_completed: 0,
+    winRate: 0,
+    distribution: {
+      connections_in_0: 0,
+      connections_in_1: 0,
+      connections_in_2: 0,
+      connections_in_3: 0,
+      connections_in_4: 0,
+    },
+  };
+  if (!isBrowserStorageAvailable()) return base;
+  const parsed = safeParseJSON<any>(window.localStorage.getItem(CONNECTIONS_STATS_KEY));
+  const games_played = Number(parsed?.games_played || 0);
+  const connections_completed = Number(parsed?.connections_completed || 0);
+  const distribution: Record<string, number> = { ...base.distribution };
+  for (let i = 0; i <= 4; i++) {
+    const k = `connections_in_${i}`;
+    const v = Number(parsed?.distribution?.[k] ?? parsed?.[k] ?? 0);
+    distribution[k] = Number.isFinite(v) ? v : 0;
+  }
+  const winRate =
+    games_played > 0
+      ? Math.round((connections_completed / games_played) * 100)
+      : 0;
+  return {
+    games_played: Number.isFinite(games_played) ? games_played : 0,
+    connections_completed: Number.isFinite(connections_completed)
+      ? connections_completed
+      : 0,
+    winRate,
+    distribution,
+  };
+}
+
+function saveLocalStats(s: ConnectionsStats) {
+  if (!isBrowserStorageAvailable()) return;
+  try {
+    window.localStorage.setItem(CONNECTIONS_STATS_KEY, JSON.stringify(s));
+  } catch {
+    // ignore
+  }
+}
 
 type Tile = {
   content: string;
@@ -29,6 +167,7 @@ type SolvedGroup = {
   title: string;
   tiles: Tile[];
   color: string;
+  categoryIndex: number;
 };
 
 const GROUP_COLORS = [
@@ -68,10 +207,20 @@ function buildTiles(categories: ConnectionsCategory[]): Tile[] {
 }
 
 export default function ConnectionsPage() {
-  const { colors } = useAppTheme();
+  const { colors, colorScheme } = useAppTheme();
+  const { signedIn } = useAuth();
+  const CONNECTIONS_TILE_LIGHT_BG = "#e6dfe6";
+  const CONNECTIONS_TILE_LIGHT_SELECTED = "#95b9ca";
   const { width } = useWindowDimensions();
+  const router = useRouter();
+  // Use a stable default width for SSR, then actual width on client
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const stableWidth = mounted ? width : 400; // Default width for SSR
   const containerPadding = 16; // 8 * 2
-  const availableWidth = width - containerPadding;
+  const availableWidth = stableWidth - containerPadding;
   const gridWidth = availableWidth * 0.5;
   const gap = 5;
   const numColumns = 4;
@@ -85,9 +234,22 @@ export default function ConnectionsPage() {
   const [error, setError] = useState<string>("");
   const [message, setMessage] = useState<string>("");
 
-  const date = useMemo(() => getNYTConnectionsDateString(), []);
+  const [progressLoaded, setProgressLoaded] = useState(false);
+  const resultRecordedRef = React.useRef(false);
+  const [stats, setStats] = useState<ConnectionsStats | null>(null);
+  const [showStatsModal, setShowStatsModal] = useState(false);
+
+  // Only calculate date on the client to avoid SSR/hydration mismatch
+  const [date, setDate] = useState<string>("");
+  useEffect(() => {
+    setDate(getNYTConnectionsDateString());
+  }, []);
 
   useEffect(() => {
+    // Don't fetch until date is set (client-side only)
+    if (!date) return;
+    setProgressLoaded(false);
+    resultRecordedRef.current = false;
     let cancelled = false;
     (async () => {
       setLoading(true);
@@ -101,9 +263,10 @@ export default function ConnectionsPage() {
         setSelected(new Set());
         setSolved([]);
         setMistakesLeft(4);
+        setStats(null);
       } catch (e: any) {
         if (cancelled) return;
-        setError(String(e?.message ?? e ?? "Failed to load puzzle"));
+        setError(stringifyError(e, "Failed to load puzzle"));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -112,6 +275,79 @@ export default function ConnectionsPage() {
       cancelled = true;
     };
   }, [date]);
+
+  // Restore progress once we have the puzzle and auth state.
+  useEffect(() => {
+    if (!puzzle || !date) return;
+    if (signedIn === null) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const apply = (progress: ConnectionsProgress) => {
+          if (cancelled) return;
+          const solvedUnique = Array.from(
+            new Set(progress.solvedCategoryIndexes),
+          ).sort((a, b) => a - b);
+
+          setMistakesLeft(progress.mistakesLeft);
+          setSelected(new Set());
+          setSolved(
+            solvedUnique.map((categoryIndex) => {
+              const title = normalizeCategoryTitle(
+                puzzle.categories[categoryIndex]?.title ?? "",
+              );
+              const color = GROUP_COLORS[categoryIndex] ?? colors.tint;
+              const groupTiles = buildTiles(puzzle.categories).filter(
+                (t) => t.categoryIndex === categoryIndex,
+              );
+              return {
+                title,
+                tiles: groupTiles,
+                color,
+                categoryIndex,
+              };
+            }),
+          );
+        };
+
+        if (signedIn) {
+          const resp = await fetch(`/api/connections/progress?date=${date}`, {
+            method: "GET",
+            credentials: "include",
+          });
+          if (!resp.ok) {
+            setProgressLoaded(true);
+            return;
+          }
+          const data = (await resp.json()) as any;
+          const mistakesLeft = Number(data?.mistakesLeft);
+          const solvedCategoryIndexes = Array.isArray(data?.solvedCategoryIndexes)
+            ? data.solvedCategoryIndexes
+            : [];
+          if (
+            Number.isFinite(mistakesLeft) &&
+            mistakesLeft >= 0 &&
+            mistakesLeft <= 4 &&
+            Array.isArray(solvedCategoryIndexes)
+          ) {
+            apply({ mistakesLeft, solvedCategoryIndexes });
+          }
+        } else {
+          const local = loadLocalProgress(date);
+          if (local) apply(local);
+        }
+      } catch {
+        // ignore
+      } finally {
+        if (!cancelled) setProgressLoaded(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [puzzle, date, signedIn, colors.tint]);
 
   const solvedContents = useMemo(() => {
     const s = new Set<string>();
@@ -187,8 +423,8 @@ export default function ConnectionsPage() {
     const color = GROUP_COLORS[categoryIndex] ?? colors.tint;
 
     setSolved((prev) => {
-      if (prev.some((g) => g.title === title)) return prev;
-      return [...prev, { title, tiles: selectedTiles, color }];
+      if (prev.some((g) => g.categoryIndex === categoryIndex)) return prev;
+      return [...prev, { title, tiles: selectedTiles, color, categoryIndex }];
     });
 
     setSelected(new Set());
@@ -196,15 +432,116 @@ export default function ConnectionsPage() {
   }
 
   const isComplete = solved.length === 4;
+  const isDone = isComplete || mistakesLeft <= 0;
+
+  // Persist progress (signed-in -> API, signed-out -> localStorage).
+  useEffect(() => {
+    if (!puzzle || !date) return;
+    if (signedIn === null) return;
+    if (!progressLoaded) return;
+    const solvedCategoryIndexes = solved.map((g) => g.categoryIndex);
+    const payload = {
+      mistakesLeft,
+      solvedCategoryIndexes,
+    };
+
+    if (signedIn) {
+      fetch("/api/connections/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ date, ...payload }),
+      }).catch(() => {});
+    } else {
+      saveLocalProgress(date, payload);
+    }
+  }, [puzzle, date, signedIn, progressLoaded, mistakesLeft, solved]);
+
+  // Record win/loss exactly once, then fetch stats.
+  useEffect(() => {
+    if (!isDone) return;
+    if (signedIn === null) return;
+    if (!progressLoaded) return;
+    if (resultRecordedRef.current) return;
+    resultRecordedRef.current = true;
+
+    const mistakesUsed = Math.min(4, Math.max(0, 4 - mistakesLeft));
+
+    const updateLocal = () => {
+      const currentStats = loadLocalStats();
+      const next: ConnectionsStats = {
+        ...currentStats,
+        games_played: currentStats.games_played + 1,
+        connections_completed:
+          currentStats.connections_completed + (isComplete ? 1 : 0),
+        distribution: { ...currentStats.distribution },
+        winRate: 0,
+      };
+      if (isComplete) {
+        const k = `connections_in_${mistakesUsed}`;
+        next.distribution[k] = (next.distribution[k] || 0) + 1;
+      }
+      next.winRate =
+        next.games_played > 0
+          ? Math.round((next.connections_completed / next.games_played) * 100)
+          : 0;
+      saveLocalStats(next);
+      setStats(next);
+    };
+
+    (async () => {
+      try {
+        if (signedIn) {
+          if (isComplete) {
+            fetch("/api/connections/win", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ mistakesUsed }),
+            }).catch(() => {});
+          } else {
+            fetch("/api/connections/loss", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+            }).catch(() => {});
+          }
+
+          const resp = await fetch("/api/connections/stats", {
+            method: "GET",
+            credentials: "include",
+          });
+          if (resp.ok) {
+            const data = (await resp.json()) as ConnectionsStats;
+            setStats(data);
+            if (Platform.OS !== "web") setShowStatsModal(true);
+          }
+        } else {
+          updateLocal();
+        }
+      } catch {
+        if (!signedIn) updateLocal();
+      }
+    })();
+  }, [isDone, isComplete, mistakesLeft, signedIn, progressLoaded]);
 
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>Connections</Text>
-        <Text style={[styles.subtitle, { color: colors.text }]}>
-          {puzzle?.print_date ?? date}
+        <View style={styles.headerTop}>
+          <Pressable
+            onPress={() => router.back()}
+            accessibilityRole="button"
+            style={styles.backBtn}
+          >
+            <FiArrowLeft size={20} color={colors.text} />
+          </Pressable>
+          <Text style={[styles.title, { color: colors.text }]}>Connections</Text>
+        </View>
+        <Text style={[styles.subtitle, { color: colors.text }]}> 
+          {(puzzle?.print_date ?? date) || "\u00A0"}
         </Text>
       </View>
 
@@ -217,7 +554,9 @@ export default function ConnectionsPage() {
         </View>
       ) : error ? (
         <View style={styles.center}>
-          <Text style={[styles.error, { color: colors.text }]}>{error}</Text>
+          <Text style={[styles.error, { color: colors.text }]}>
+            {stringifyError(error)}
+          </Text>
           <Text style={[styles.subtitle, { color: colors.text }]}>
             Try reloading.
           </Text>
@@ -256,7 +595,7 @@ export default function ConnectionsPage() {
                       { color: readableTextOn(g.color) },
                     ]}
                   >
-                    {g.tiles.map((t) => t.content).join(" • ")}
+                    {g.tiles.map((t) => t.content).join(" - ")}
                   </Text>
                 </View>
               ))}
@@ -274,8 +613,18 @@ export default function ConnectionsPage() {
                   style={[
                     styles.tile,
                     { width: tileWidth },
-                    { backgroundColor: colors.icon },
-                    isSelected && { backgroundColor: colors.tint },
+                    {
+                      backgroundColor:
+                        colorScheme === "light"
+                          ? CONNECTIONS_TILE_LIGHT_BG
+                          : colors.icon,
+                    },
+                    isSelected && {
+                      backgroundColor:
+                        colorScheme === "light"
+                          ? CONNECTIONS_TILE_LIGHT_SELECTED
+                          : colors.tint,
+                    },
                   ]}
                 >
                   <Text
@@ -296,7 +645,7 @@ export default function ConnectionsPage() {
             })}
           </View>
 
-          <View style={styles.mistakesRow} accessibilityRole="status">
+          <View style={styles.mistakesRow}>
             <Text style={[styles.meta, { color: colors.text, marginRight: 8 }]}>
               Mistakes left
             </Text>
@@ -383,7 +732,69 @@ export default function ConnectionsPage() {
               </Text>
             </Pressable>
           </View>
+
+          {isDone && stats && (
+            <View style={{ marginTop: 10, alignSelf: "center", width: gridWidth }}>
+              <StatsChart
+                title="Connections Stats"
+                stats={stats}
+                distributionKeys={[
+                  "connections_in_0",
+                  "connections_in_1",
+                  "connections_in_2",
+                  "connections_in_3",
+                  "connections_in_4",
+                ]}
+                distributionLabels={(key) => key.replace("connections_in_", "")}
+              />
+            </View>
+          )}
         </>
+      )}
+
+      {Platform.OS !== "web" && stats && (
+        <Modal
+          visible={showStatsModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowStatsModal(false)}
+        >
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.modalCard, { backgroundColor: colors.background }]}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={[styles.title, { color: colors.text }]}>Stats</Text>
+                <Pressable
+                  onPress={() => setShowStatsModal(false)}
+                  style={[styles.controlBtn, { backgroundColor: colors.tint }]}
+                >
+                  <Text style={[styles.controlText, { color: readableTextOn(colors.tint) }]}>
+                    Close
+                  </Text>
+                </Pressable>
+              </View>
+              <View style={{ marginTop: 12 }}>
+                <StatsChart
+                  title="Connections Stats"
+                  stats={stats}
+                  distributionKeys={[
+                    "connections_in_0",
+                    "connections_in_1",
+                    "connections_in_2",
+                    "connections_in_3",
+                    "connections_in_4",
+                  ]}
+                  distributionLabels={(key) => key.replace("connections_in_", "")}
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
       )}
     </SafeAreaView>
   );
@@ -409,6 +820,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 10,
   },
+  headerTop: { flexDirection: "row", alignItems: "center", gap: 8 },
+  backBtn: { padding: 6 },
   solvedTitle: { fontSize: 13, fontWeight: "800" },
   solvedWords: { fontSize: 12, fontWeight: "600", marginTop: 3 },
   grid: {
@@ -430,7 +843,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 3,
   },
-  tileText: { fontSize: 10, fontWeight: "800", textAlign: "center" },
+  tileText: { fontSize: 16, fontWeight: "800", textAlign: "center" },
   message: { textAlign: "center", paddingVertical: 4, fontSize: 13 },
   win: {
     textAlign: "center",
@@ -455,4 +868,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   mistakeDot: { width: 14, height: 14, borderRadius: 14, borderWidth: 1 },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+  },
+  modalCard: {
+    width: "90%",
+    maxWidth: 420,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
+  },
 });

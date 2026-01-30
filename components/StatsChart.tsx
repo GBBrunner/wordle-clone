@@ -1,33 +1,62 @@
 import { useAppTheme } from "@/lib/theme/context";
 import React, { useEffect, useMemo, useRef } from "react";
+import { stringifyAny } from "@/lib/utils/stringify";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 
 type Stats = {
   games_played: number;
-  wordles_completed: number;
+  wordles_completed?: number;
+  connections_completed?: number;
+  completed?: number;
   winRate: number;
   distribution: Record<string, number>;
 };
 
 type Props = {
   stats: Stats;
+  title?: string;
+  distributionKeys?: string[];
+  distributionLabels?: (key: string, index: number) => string;
 };
 
-export default function StatsChart({ stats }: Props) {
+export default function StatsChart({
+  stats,
+  title = "Stats",
+  distributionKeys,
+  distributionLabels,
+}: Props) {
   const { colors } = useAppTheme();
+
+  const keys = useMemo(() => {
+    if (distributionKeys && distributionKeys.length > 0) return distributionKeys;
+    return Array.from({ length: 6 }, (_, i) => `wordle_in_${i + 1}`);
+  }, [distributionKeys]);
 
   const counts = useMemo(
     () =>
-      Array.from(
-        { length: 6 },
-        (_, i) => stats.distribution[`wordle_in_${i + 1}`] || 0,
-      ),
-    [stats],
+      keys.map((k) => stats.distribution[k] || 0),
+    [keys, stats],
   );
   const maxCount = Math.max(1, ...counts);
   const BAR_MAX = 220; // px
 
-  const animsRef = useRef(counts.map(() => new Animated.Value(0)));
+  const completed =
+    typeof stats.completed === "number"
+      ? stats.completed
+      : typeof stats.wordles_completed === "number"
+        ? stats.wordles_completed
+        : typeof stats.connections_completed === "number"
+          ? stats.connections_completed
+          : 0;
+
+  const animsRef = useRef<Animated.Value[]>([]);
+
+  useEffect(() => {
+    // Ensure we have exactly one Animated.Value per bar.
+    if (animsRef.current.length !== keys.length) {
+      animsRef.current = keys.map(() => new Animated.Value(0));
+    }
+  }, [keys]);
 
   useEffect(() => {
     // Reset values to 0 then animate to target widths
@@ -46,14 +75,20 @@ export default function StatsChart({ stats }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.title, { color: colors.text }]}>Stats</Text>
+      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
       <Text style={[styles.meta, { color: colors.text }]}>
-        Games played: {stats.games_played} Win Rate: {stats.winRate}%
+        Games played: {stats.games_played} Wins: {completed} Win Rate: {stats.winRate}%
       </Text>
       <View style={{ marginTop: 8, gap: 6 }}>
         {counts.map((count, i) => (
           <View key={i} style={styles.row}>
-            <Text style={[styles.label, { color: colors.text }]}>{i + 1}</Text>
+            <Text style={[styles.label, { color: colors.text }]}>
+              {stringifyAny(
+                distributionLabels
+                  ? distributionLabels(keys[i], i)
+                  : i + 1,
+              )}
+            </Text>
             <View style={[styles.barTrack, { backgroundColor: colors.icon }]}>
               <Animated.View
                 style={[
@@ -65,7 +100,7 @@ export default function StatsChart({ stats }: Props) {
                 ]}
               />
             </View>
-            <Text style={[styles.count, { color: colors.text }]}>{count}</Text>
+            <Text style={[styles.count, { color: colors.text }]}>{stringifyAny(count)}</Text>
           </View>
         ))}
       </View>

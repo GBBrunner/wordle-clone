@@ -172,7 +172,7 @@ export default function Board({
                 ]}
               >
                 <Text style={[styles.cellText, { color: tileTextColor }]}>
-                  {cell.char}
+                  {cell.char || "\u00A0"}
                 </Text>
               </Animated.View>
             );
@@ -193,8 +193,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  cellText: { fontSize: 22, fontWeight: "700" },
+  cellText: { fontSize: 26, fontWeight: "700" },
   correct: { backgroundColor: "#6aaa64", borderColor: "#6aaa64" },
   present: { backgroundColor: "#c9b458", borderColor: "#c9b458" },
-  absent: { backgroundColor: "#3a3a3c", borderColor: "#3a3a3c" },
+  absent: { backgroundColor: "#706b6b", borderColor: "#6b6e70" },
 });
