@@ -45,6 +45,13 @@ function RootLayoutInner() {
           }}
         />
         <Stack.Screen
+          name="strands"
+          options={{
+            title: "Strands",
+            headerRight: () => <HeaderRight />,
+          }}
+        />
+        <Stack.Screen
           name="wordle"
           options={{
             title: "Wordle",

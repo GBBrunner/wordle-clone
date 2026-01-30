@@ -613,6 +613,397 @@ async function connectionsStats(req: Req, res: Res) {
   }
 }
 
+// ---------------- Strands routes ----------------
+
+function isValidStrandsUpstreamPayload(data: any): boolean {
+  if (!data || typeof data !== "object") return false;
+  if (typeof data.status !== "string") return false;
+  if (!Array.isArray(data.startingBoard)) return false;
+  if (typeof data.clue !== "string") return false;
+  if (!Array.isArray(data.themeWords)) return false;
+  if (typeof data.spangram !== "string") return false;
+  return true;
+}
+
+async function strandsPuzzle(req: Req, res: Res, dateFromPath?: string) {
+  setCors(res);
+
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return;
+  }
+  if (req.method !== "GET")
+    return setJson(res, 405, { error: "Method Not Allowed" });
+
+  const date = dateFromPath || getQueryParam(req, "date");
+  if (!date || !isValidDate(date)) {
+    return setJson(res, 400, { error: "Invalid date; expected YYYY-MM-DD" });
+  }
+
+  const nytUrl = `https://www.nytimes.com/svc/strands/v2/${date}.json`;
+
+  try {
+    const upstream = await fetch(nytUrl, {
+      headers: {
+        "User-Agent": "wordle-clone/1.0",
+        Accept: "application/json",
+      },
+    });
+
+    if (!upstream.ok) {
+      return setJson(res, upstream.status, {
+        error: "Upstream error",
+        status: upstream.status,
+      });
+    }
+
+    const data = await upstream.json();
+    if (!isValidStrandsUpstreamPayload(data)) {
+      return setJson(res, 502, { error: "Invalid upstream payload" });
+    }
+
+    const startingBoard: unknown = (data as any).startingBoard;
+    const boardArr = Array.isArray(startingBoard) ? (startingBoard as any[]) : [];
+    const rows = boardArr.length;
+    const cols = rows > 0 && typeof boardArr[0] === "string" ? (boardArr[0] as string).length : 0;
+
+    const boardOk =
+      Array.isArray(startingBoard) &&
+      startingBoard.length > 0 &&
+      startingBoard.every(
+        (r: any) =>
+          typeof r === "string" &&
+          r.length === cols &&
+          /^[A-Z]+$/.test(r.toUpperCase()),
+      );
+
+    if (!boardOk || cols <= 0) {
+      return setJson(res, 502, { error: "Invalid upstream payload" });
+    }
+
+    // Trim heavy/spoiler fields (solutions + coords + answers). Validation happens via /submit.
+    const payload = {
+      status: String((data as any).status || "OK"),
+      id: Number((data as any).id || 0),
+      printDate: String((data as any).printDate || date),
+      clue: String((data as any).clue || ""),
+      startingBoard: (startingBoard as string[]).map((r) => r.toUpperCase()),
+      rows,
+      cols,
+      themeWordCount: Array.isArray((data as any).themeWords)
+        ? (data as any).themeWords.length
+        : 0,
+    };
+
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader(
+      "Cache-Control",
+      "public, s-maxage=3600, stale-while-revalidate=86400",
+    );
+    res.status(200).end(JSON.stringify(payload));
+  } catch {
+    setJson(res, 502, { error: "Failed to fetch upstream" });
+  }
+}
+
+function normalizeStrandsWord(word: unknown): string {
+  if (typeof word !== "string") return "";
+  return word.trim().toUpperCase();
+}
+
+async function strandsSubmit(req: Req, res: Res) {
+  if (req.method !== "POST")
+    return setJson(res, 405, { error: "Method Not Allowed" });
+
+  const body = await readJsonBody(req);
+  const date: string | undefined = body?.date;
+  const wordRaw: unknown = body?.word;
+
+  if (!date || !isValidDate(date)) return setJson(res, 400, { error: "invalid_date" });
+
+  const word = normalizeStrandsWord(wordRaw);
+  if (!/^[A-Z]{2,}$/.test(word)) return setJson(res, 400, { error: "invalid_word" });
+
+  const nytUrl = `https://www.nytimes.com/svc/strands/v2/${date}.json`;
+  try {
+    const upstream = await fetch(nytUrl, {
+      headers: {
+        "User-Agent": "wordle-clone/1.0",
+        Accept: "application/json",
+      },
+    });
+    if (!upstream.ok) {
+      return setJson(res, upstream.status, {
+        error: "Upstream error",
+        status: upstream.status,
+      });
+    }
+
+    const data = await upstream.json();
+    if (!isValidStrandsUpstreamPayload(data)) {
+      return setJson(res, 502, { error: "Invalid upstream payload" });
+    }
+
+    const spangram = normalizeStrandsWord((data as any).spangram);
+    const themeWords: string[] = Array.isArray((data as any).themeWords)
+      ? (data as any).themeWords.map(normalizeStrandsWord)
+      : [];
+
+    const kind =
+      word === spangram
+        ? "spangram"
+        : themeWords.includes(word)
+          ? "theme"
+          : "other";
+
+    setJson(res, 200, { kind, word });
+  } catch {
+    setJson(res, 502, { error: "Failed to fetch upstream" });
+  }
+}
+
+async function strandsProgress(req: Req, res: Res) {
+  const { get } = parseCookies(req);
+  const userId = get("user_id");
+  const signedIn = get("signed_in") === "1";
+  if (!signedIn || !userId) return setJson(res, 401, { error: "unauthorized" });
+  if (!requireFirebaseEnv(res)) return;
+
+  const { adminDb } = await import("../lib/firebase-admin.js");
+  const uid = decodeURIComponent(userId);
+
+  if (req.method === "GET") {
+    const date = getQueryParam(req, "date");
+    if (!date || !isValidDate(date))
+      return setJson(res, 400, { error: "invalid_date" });
+
+    try {
+      const docRef = adminDb
+        .collection("users")
+        .doc(uid)
+        .collection("strands")
+        .doc(date);
+      const snap = await docRef.get();
+      const data = snap.exists ? snap.data() : {};
+      const foundThemeWords = Array.isArray(data?.foundThemeWords)
+        ? data!.foundThemeWords.filter((w: any) => typeof w === "string")
+        : Array.isArray(data?.foundWords)
+          ? data!.foundWords.filter((w: any) => typeof w === "string")
+          : [];
+      const foundSpangram = Boolean(data?.foundSpangram);
+      const foundPaths = Array.isArray(data?.foundPaths) ? data!.foundPaths : [];
+      const gaveUp = Boolean(data?.gaveUp);
+      setJson(res, 200, { foundThemeWords, foundSpangram, foundPaths, gaveUp });
+    } catch (e: any) {
+      setJson(res, 500, {
+        error: typeof e?.message === "string" ? e.message : "unknown_error",
+      });
+    }
+    return;
+  }
+
+  if (req.method === "POST") {
+    try {
+      const body = await readJsonBody(req);
+      const date: string | undefined = body?.date;
+      const foundThemeWords: unknown = body?.foundThemeWords ?? body?.foundWords;
+      const foundSpangram: unknown = body?.foundSpangram;
+      const foundPaths: unknown = body?.foundPaths;
+      const gaveUp: unknown = body?.gaveUp;
+
+      if (!date || !isValidDate(date))
+        return setJson(res, 400, { error: "invalid_date" });
+
+      if (
+        !Array.isArray(foundThemeWords) ||
+        !foundThemeWords.every((w) => typeof w === "string")
+      ) {
+        return setJson(res, 400, { error: "invalid_foundThemeWords" });
+      }
+
+      const normalizedThemeWords = Array.from(
+        new Set(
+          foundThemeWords
+            .map((w) => normalizeStrandsWord(w))
+            .filter((w) => /^[A-Z]{2,}$/.test(w)),
+        ),
+      ).sort();
+
+      const normalizeFoundPaths = (v: unknown) => {
+        if (!Array.isArray(v)) return [];
+        const out: Array<{
+          kind: "theme" | "spangram";
+          word: string;
+          coords: Array<{ r: number; c: number }>;
+        }> = [];
+        for (const item of v) {
+          if (!item || typeof item !== "object") continue;
+          const kind = (item as any).kind;
+          const word = normalizeStrandsWord((item as any).word);
+          const coordsRaw = (item as any).coords;
+          if (kind !== "theme" && kind !== "spangram") continue;
+          if (!/^[A-Z]{2,}$/.test(word)) continue;
+          if (!Array.isArray(coordsRaw) || coordsRaw.length < 2 || coordsRaw.length > 80)
+            continue;
+          const coords: Array<{ r: number; c: number }> = [];
+          let ok = true;
+          for (const c of coordsRaw) {
+            const r = Number((c as any)?.r);
+            const cc = Number((c as any)?.c);
+            if (!Number.isFinite(r) || !Number.isInteger(r) || r < 0 || r > 50) {
+              ok = false;
+              break;
+            }
+            if (!Number.isFinite(cc) || !Number.isInteger(cc) || cc < 0 || cc > 50) {
+              ok = false;
+              break;
+            }
+            coords.push({ r, c: cc });
+          }
+          if (!ok) continue;
+          out.push({ kind, word, coords });
+        }
+        const seen = new Set<string>();
+        const dedup: typeof out = [];
+        for (const p of out) {
+          const k = `${p.kind}:${p.word}`;
+          if (seen.has(k)) continue;
+          seen.add(k);
+          dedup.push(p);
+        }
+        return dedup;
+      };
+
+      const normalizedFoundPaths = normalizeFoundPaths(foundPaths);
+
+      const docRef = adminDb
+        .collection("users")
+        .doc(uid)
+        .collection("strands")
+        .doc(date);
+
+      await docRef.set(
+        {
+          foundThemeWords: normalizedThemeWords,
+          foundSpangram: Boolean(foundSpangram),
+          foundPaths: normalizedFoundPaths,
+          gaveUp: Boolean(gaveUp),
+          updatedAt: new Date().toISOString(),
+        },
+        { merge: true },
+      );
+
+      setJson(res, 200, { ok: true });
+    } catch (e: any) {
+      setJson(res, 500, {
+        error: typeof e?.message === "string" ? e.message : "unknown_error",
+      });
+    }
+    return;
+  }
+
+  setJson(res, 405, { error: "Method Not Allowed" });
+}
+
+async function strandsWin(req: Req, res: Res) {
+  if (req.method !== "POST")
+    return setJson(res, 405, { error: "Method Not Allowed" });
+
+  const { get } = parseCookies(req);
+  const userId = get("user_id");
+  const signedIn = get("signed_in") === "1";
+  if (!signedIn || !userId) return setJson(res, 401, { error: "unauthorized" });
+  if (!requireFirebaseEnv(res)) return;
+
+  try {
+    const { adminDb, admin } = await import("../lib/firebase-admin.js");
+    const userRef = adminDb.collection("users").doc(decodeURIComponent(userId));
+
+    await userRef.set(
+      {
+        strands_completed: admin.firestore.FieldValue.increment(1),
+        strands_games_played: admin.firestore.FieldValue.increment(1),
+      },
+      { merge: true },
+    );
+
+    setJson(res, 200, { ok: true });
+  } catch (e: any) {
+    setJson(res, 500, {
+      error: typeof e?.message === "string" ? e.message : "unknown_error",
+    });
+  }
+}
+
+async function strandsLoss(req: Req, res: Res) {
+  if (req.method !== "POST")
+    return setJson(res, 405, { error: "Method Not Allowed" });
+
+  const { get } = parseCookies(req);
+  const userId = get("user_id");
+  const signedIn = get("signed_in") === "1";
+  if (!signedIn || !userId) return setJson(res, 401, { error: "unauthorized" });
+  if (!requireFirebaseEnv(res)) return;
+
+  try {
+    const { adminDb, admin } = await import("../lib/firebase-admin.js");
+    const userRef = adminDb.collection("users").doc(decodeURIComponent(userId));
+
+    await userRef.set(
+      {
+        strands_games_played: admin.firestore.FieldValue.increment(1),
+        strands_failed: admin.firestore.FieldValue.increment(1),
+      },
+      { merge: true },
+    );
+
+    setJson(res, 200, { ok: true });
+  } catch (e: any) {
+    setJson(res, 500, {
+      error: typeof e?.message === "string" ? e.message : "unknown_error",
+    });
+  }
+}
+
+async function strandsStats(req: Req, res: Res) {
+  if (req.method !== "GET")
+    return setJson(res, 405, { error: "Method Not Allowed" });
+
+  const { get } = parseCookies(req);
+  const userId = get("user_id");
+  const signedIn = get("signed_in") === "1";
+  if (!signedIn || !userId) return setJson(res, 401, { error: "unauthorized" });
+  if (!requireFirebaseEnv(res)) return;
+
+  try {
+    const { adminDb } = await import("../lib/firebase-admin.js");
+    const snap = await adminDb
+      .collection("users")
+      .doc(decodeURIComponent(userId))
+      .get();
+
+    const data = (snap.exists ? snap.data() : {}) as Record<string, any>;
+    const games_played = Number(data?.strands_games_played || 0);
+    const strands_completed = Number(data?.strands_completed || 0);
+
+    const winRate =
+      games_played > 0
+        ? Math.round((strands_completed / games_played) * 100)
+        : 0;
+
+    setJson(res, 200, {
+      games_played,
+      strands_completed,
+      winRate,
+      distribution: {},
+    });
+  } catch (e: any) {
+    setJson(res, 500, {
+      error: typeof e?.message === "string" ? e.message : "unknown_error",
+    });
+  }
+}
+
 // ---------------- Wordle routes ----------------
 
 async function wordlePuzzle(req: Req, res: Res, dateFromPath?: string) {
@@ -887,6 +1278,22 @@ export default async function handler(req: Req, res: Res) {
 
     // fallback to /api/connections?date=...
     if (!a) return connectionsPuzzle(req, res);
+
+    return setJson(res, 404, { error: "not_found" });
+  }
+
+  if (root === "strands") {
+    if (a === "stats") return strandsStats(req, res);
+    if (a === "progress") return strandsProgress(req, res);
+    if (a === "win") return strandsWin(req, res);
+    if (a === "loss") return strandsLoss(req, res);
+    if (a === "submit") return strandsSubmit(req, res);
+
+    // support /api/strands/:date
+    if (a && isValidDate(a)) return strandsPuzzle(req, res, a);
+
+    // fallback to /api/strands?date=...
+    if (!a) return strandsPuzzle(req, res);
 
     return setJson(res, 404, { error: "not_found" });
   }

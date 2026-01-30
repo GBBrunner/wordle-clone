@@ -924,50 +924,52 @@ export default function ConnectionsPage() {
             </Text>
           ) : null}
 
-          <View style={styles.controls}>
-            <Pressable
-              onPress={deselectAll}
-              style={[styles.controlBtn, { backgroundColor: colors.icon }]}
-              accessibilityRole="button"
-            >
-              <Text
-                style={[
-                  styles.controlText,
-                  { color: readableTextOn(colors.icon) },
-                ]}
+          {!isDone && (
+            <View style={styles.controls}>
+              <Pressable
+                onPress={deselectAll}
+                style={[styles.controlBtn, { backgroundColor: colors.icon }]}
+                accessibilityRole="button"
               >
-                Deselect
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={onShuffle}
-              style={[styles.controlBtn, { backgroundColor: colors.icon }]}
-              accessibilityRole="button"
-            >
-              <Text
-                style={[
-                  styles.controlText,
-                  { color: readableTextOn(colors.icon) },
-                ]}
+                <Text
+                  style={[
+                    styles.controlText,
+                    { color: readableTextOn(colors.icon) },
+                  ]}
+                >
+                  Deselect
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={onShuffle}
+                style={[styles.controlBtn, { backgroundColor: colors.icon }]}
+                accessibilityRole="button"
               >
-                Shuffle
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={submit}
-              style={[styles.controlBtn, { backgroundColor: colors.tint }]}
-              accessibilityRole="button"
-            >
-              <Text
-                style={[
-                  styles.controlText,
-                  { color: readableTextOn(colors.tint) },
-                ]}
+                <Text
+                  style={[
+                    styles.controlText,
+                    { color: readableTextOn(colors.icon) },
+                  ]}
+                >
+                  Shuffle
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={submit}
+                style={[styles.controlBtn, { backgroundColor: colors.tint }]}
+                accessibilityRole="button"
               >
-                Submit
-              </Text>
-            </Pressable>
-          </View>
+                <Text
+                  style={[
+                    styles.controlText,
+                    { color: readableTextOn(colors.tint) },
+                  ]}
+                >
+                  Submit
+                </Text>
+              </Pressable>
+            </View>
+          )}
 
           {isDone && signedIn === false && (
             <View style={{ marginTop: 10, gap: 10, alignItems: "center" }}>

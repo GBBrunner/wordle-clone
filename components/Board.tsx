@@ -29,6 +29,7 @@ export default function Board({
   const scaleAnimsRef = useRef<Animated.Value[][]>([]);
   const flipAnimsRef = useRef<Animated.Value[][]>([]); // 0 -> 1 mapped to rotateY
   const [revealedMap, setRevealedMap] = useState<Record<string, boolean>>({});
+  const prevEvalLenRef = useRef<number>(0);
 
   // Ensure animation matrix size
   if (scaleAnimsRef.current.length !== rows) {
@@ -84,9 +85,43 @@ export default function Board({
     grid.push(row);
   }
 
-  // Trigger reveal animation for the latest evaluated row
   useEffect(() => {
-    const r = evaluations.length - 1;
+    const prevLen = prevEvalLenRef.current;
+    const nextLen = evaluations.length;
+    prevEvalLenRef.current = nextLen;
+
+    // Game reset or mode change
+    if (nextLen === 0) {
+      setRevealedMap({});
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          scaleAnimsRef.current?.[r]?.[c]?.setValue?.(1);
+          flipAnimsRef.current?.[r]?.[c]?.setValue?.(0);
+        }
+      }
+      return;
+    }
+
+    const jumped = nextLen - prevLen;
+
+    // On refresh/restore we may set multiple evaluated rows at once.
+    // In that case, reveal all evaluated cells immediately so colors show.
+    if (jumped > 1 || (prevLen === 0 && nextLen > 1)) {
+      const all: Record<string, boolean> = {};
+      const rMax = Math.min(nextLen, rows);
+      for (let r = 0; r < rMax; r++) {
+        for (let c = 0; c < cols; c++) {
+          all[`${r}-${c}`] = true;
+          scaleAnimsRef.current?.[r]?.[c]?.setValue?.(1);
+          flipAnimsRef.current?.[r]?.[c]?.setValue?.(0);
+        }
+      }
+      setRevealedMap(all);
+      return;
+    }
+
+    // Normal play: trigger reveal animation for the latest evaluated row
+    const r = nextLen - 1;
     if (r >= 0 && r < rows) {
       for (let c = 0; c < cols; c++) {
         const delay = c * 160; // cascade across the row

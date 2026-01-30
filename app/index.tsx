@@ -95,6 +95,27 @@ export default function Main() {
             </View>
           </Pressable>
         </Link>
+
+        <Link href="/strands" asChild>
+          <Pressable style={dynamicStyles.cta}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 10,
+                  marginRight: 12,
+                  backgroundColor: "rgba(255,255,255,0.18)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ color: "#fff", fontWeight: "900" }}>S</Text>
+              </View>
+              <Text style={styles.ctaText}>Play Strands</Text>
+            </View>
+          </Pressable>
+        </Link>
       </View>
     </SafeAreaView>
   );

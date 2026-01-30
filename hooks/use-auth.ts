@@ -6,6 +6,10 @@ import {
     flushPendingWordleEvents,
     flushPendingWordleProgresses,
 } from "@/lib/wordle/pending";
+import {
+  flushPendingStrandsEvents,
+  flushPendingStrandsProgresses,
+} from "@/lib/strands/pending";
 import { useCallback, useEffect, useState } from "react";
 
 export function useAuth() {
@@ -41,8 +45,10 @@ export function useAuth() {
     (async () => {
       await flushPendingWordleProgresses();
       await flushPendingConnectionsProgresses();
+      await flushPendingStrandsProgresses();
       await flushPendingWordleEvents();
       await flushPendingConnectionsEvents();
+      await flushPendingStrandsEvents();
     })().catch(() => {});
   }, [isClient, signedIn]);
 
