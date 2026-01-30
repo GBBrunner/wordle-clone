@@ -26,7 +26,6 @@ import {
   useWindowDimensions,
 } from "react-native";
 import GoogleSignInLink from "../components/GoogleSignInLink";
-import StatsChart from "../components/StatsChart";
 import {
   queuePendingConnectionsEvent,
   queuePendingConnectionsProgress,
@@ -88,7 +87,6 @@ function getLocalProgressKey(d: string) {
 }
 
 function loadLocalProgress(d: string): ConnectionsProgress | null {
-  if (!isBrowserStorageAvailable()) return null;
   const parsed = safeParseJSON<any>(
     window.localStorage.getItem(getLocalProgressKey(d)),
   );
@@ -984,18 +982,12 @@ export default function ConnectionsPage() {
             <View
               style={{ marginTop: 10, alignSelf: "center", width: gridWidth }}
             >
-              <StatsChart
-                title="Connections Stats"
-                stats={stats}
-                distributionKeys={[
-                  "connections_in_0",
-                  "connections_in_1",
-                  "connections_in_2",
-                  "connections_in_3",
-                  "connections_in_4",
-                ]}
-                distributionLabels={(key) => key.replace("connections_in_", "")}
-              />
+              <Text style={{ color: colors.text, textAlign: "center" }}>
+                Completed: {stats.connections_completed} / {stats.games_played}
+              </Text>
+              <Text style={{ color: colors.text, textAlign: "center" }}>
+                Win rate: {stats.winRate}%
+              </Text>
             </View>
           )}
         </>
@@ -1037,20 +1029,12 @@ export default function ConnectionsPage() {
                 </Pressable>
               </View>
               <View style={{ marginTop: 12 }}>
-                <StatsChart
-                  title="Connections Stats"
-                  stats={stats}
-                  distributionKeys={[
-                    "connections_in_0",
-                    "connections_in_1",
-                    "connections_in_2",
-                    "connections_in_3",
-                    "connections_in_4",
-                  ]}
-                  distributionLabels={(key) =>
-                    key.replace("connections_in_", "")
-                  }
-                />
+                <Text style={{ color: colors.text, textAlign: "center" }}>
+                  Completed: {stats.connections_completed} / {stats.games_played}
+                </Text>
+                <Text style={{ color: colors.text, textAlign: "center" }}>
+                  Win rate: {stats.winRate}%
+                </Text>
               </View>
             </View>
           </View>

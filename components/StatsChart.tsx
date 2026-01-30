@@ -1,6 +1,6 @@
 import { useAppTheme } from "@/lib/theme/context";
 import { stringifyAny } from "@/lib/utils/stringify";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 
 type Stats = {
@@ -36,7 +36,7 @@ export default function StatsChart({
   const distribution = (stats as any)?.distribution || {};
 
   const counts = useMemo(
-    () => keys.map((k) => distribution[k] || 0),
+    () => keys.map((k) => Number(distribution?.[k] ?? 0) || 0),
     [keys, distribution],
   );
   const maxCount = Math.max(1, ...counts);
@@ -51,21 +51,17 @@ export default function StatsChart({
           ? stats.connections_completed
           : 0;
 
-  const animsRef = useRef<Animated.Value[]>([]);
-
-  useEffect(() => {
-    // Ensure we have exactly one Animated.Value per bar.
-    if (animsRef.current.length !== keys.length) {
-      animsRef.current = keys.map(() => new Animated.Value(0));
-    }
-  }, [keys]);
+  // Important: initialize Animated.Values during render.
+  // Updating a ref in an effect doesn't re-render, which can leave `width`
+  // undefined on web and make every bar stretch full width.
+  const anims = useMemo(() => keys.map(() => new Animated.Value(0)), [keys]);
 
   useEffect(() => {
     // Reset values to 0 then animate to target widths
-    animsRef.current.forEach((v) => v.setValue(0));
+    anims.forEach((v) => v.setValue(0));
     const animations = counts.map((count, idx) => {
       const target = (count / maxCount) * BAR_MAX;
-      return Animated.timing(animsRef.current[idx], {
+      return Animated.timing(anims[idx], {
         toValue: target,
         duration: 700,
         easing: Easing.out(Easing.cubic),
@@ -73,7 +69,7 @@ export default function StatsChart({
       });
     });
     Animated.stagger(80, animations).start();
-  }, [counts, maxCount]);
+  }, [anims, counts, maxCount]);
 
   return (
     <View style={styles.container}>
@@ -95,7 +91,7 @@ export default function StatsChart({
                 style={[
                   styles.barFill,
                   {
-                    width: animsRef.current[i],
+                    width: anims[i],
                     backgroundColor: colors.tint,
                   },
                 ]}
