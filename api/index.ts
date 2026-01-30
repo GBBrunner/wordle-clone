@@ -57,7 +57,11 @@ function envDiagnostics() {
 
 function requireFirebaseEnv(res: Res): boolean {
   const diagnostics = envDiagnostics();
-  if (!diagnostics.hasProjectId || !diagnostics.hasClientEmail || !diagnostics.hasPrivateKey) {
+  if (
+    !diagnostics.hasProjectId ||
+    !diagnostics.hasClientEmail ||
+    !diagnostics.hasPrivateKey
+  ) {
     setJson(res, 500, { error: "server_env_missing", diagnostics });
     return false;
   }
@@ -97,7 +101,8 @@ async function readJsonBody(req: Req): Promise<any> {
 // ---------------- Auth routes ----------------
 
 async function authMe(req: Req, res: Res) {
-  if (req.method !== "GET") return setJson(res, 405, { error: "Method Not Allowed" });
+  if (req.method !== "GET")
+    return setJson(res, 405, { error: "Method Not Allowed" });
 
   const { cookieHeader } = parseCookies(req);
   const signedIn = Boolean(
@@ -111,7 +116,8 @@ async function authMe(req: Req, res: Res) {
 }
 
 async function authProfile(req: Req, res: Res) {
-  if (req.method !== "GET") return setJson(res, 405, { error: "Method Not Allowed" });
+  if (req.method !== "GET")
+    return setJson(res, 405, { error: "Method Not Allowed" });
 
   const cookieHeader = getHeader(req, "cookie");
   const getCookie = (name: string) => {
@@ -158,7 +164,8 @@ async function authCallbackGoogle(req: Req, res: Res) {
   // Diagnostic version - identifies Firebase issue
   const diagnostics = {
     ...envDiagnostics(),
-    privateKeyStart: process.env.FIREBASE_PRIVATE_KEY?.substring(0, 30) || "missing",
+    privateKeyStart:
+      process.env.FIREBASE_PRIVATE_KEY?.substring(0, 30) || "missing",
   };
 
   if (getQueryParam(req, "test") === "1") {
@@ -170,14 +177,17 @@ async function authCallbackGoogle(req: Req, res: Res) {
     return;
   }
 
-  if (req.method !== "GET") return setJson(res, 405, { error: "Method Not Allowed" });
+  if (req.method !== "GET")
+    return setJson(res, 405, { error: "Method Not Allowed" });
 
   const code = getQueryParam(req, "code");
   const state = getQueryParam(req, "state");
   const error = getQueryParam(req, "error");
 
   if (error) {
-    res.status(302).setHeader("Location", `/login?error=${encodeURIComponent(error)}`);
+    res
+      .status(302)
+      .setHeader("Location", `/login?error=${encodeURIComponent(error)}`);
     res.end();
     return;
   }
@@ -193,17 +203,23 @@ async function authCallbackGoogle(req: Req, res: Res) {
   if (!state || !cookieState || state !== cookieState) {
     res
       .status(302)
-      .setHeader("Location", `/login?error=${encodeURIComponent("invalid_state")}`);
+      .setHeader(
+        "Location",
+        `/login?error=${encodeURIComponent("invalid_state")}`,
+      );
     res.end();
     return;
   }
 
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  let redirectUri = process.env.GOOGLE_REDIRECT_URI || process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI;
+  let redirectUri =
+    process.env.GOOGLE_REDIRECT_URI ||
+    process.env.EXPO_PUBLIC_GOOGLE_REDIRECT_URI;
 
   if (!redirectUri) {
-    const host = (getHeader(req, "x-forwarded-host") || getHeader(req, "host")) as string;
+    const host = (getHeader(req, "x-forwarded-host") ||
+      getHeader(req, "host")) as string;
     const proto = (getHeader(req, "x-forwarded-proto") || "https") as string;
     redirectUri = `${proto}://${host}/api/auth/callback/google`;
   }
@@ -228,7 +244,10 @@ async function authCallbackGoogle(req: Req, res: Res) {
     if (!tokenRes.ok) {
       res
         .status(302)
-        .setHeader("Location", `/login?error=${encodeURIComponent("token_exchange_failed")}`);
+        .setHeader(
+          "Location",
+          `/login?error=${encodeURIComponent("token_exchange_failed")}`,
+        );
       res.end();
       return;
     }
@@ -238,9 +257,12 @@ async function authCallbackGoogle(req: Req, res: Res) {
 
     let profile: any = null;
     if (accessToken) {
-      const profRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
+      const profRes = await fetch(
+        "https://www.googleapis.com/oauth2/v3/userinfo",
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        },
+      );
       if (profRes.ok) {
         profile = await profRes.json();
 
@@ -279,7 +301,9 @@ async function authCallbackGoogle(req: Req, res: Res) {
       cookies.push(`user_id=${userId}; Path=/; HttpOnly; Max-Age=${oneWeek}`);
     }
 
-    const display = encodeURIComponent(profile?.name || profile?.email || "User");
+    const display = encodeURIComponent(
+      profile?.name || profile?.email || "User",
+    );
     cookies.push(`display_name=${display}; Path=/; Max-Age=${oneWeek}`);
 
     const hasJoined = (cookieHeader || "")
@@ -297,7 +321,10 @@ async function authCallbackGoogle(req: Req, res: Res) {
     console.error("OAuth error:", e?.message);
     res
       .status(302)
-      .setHeader("Location", `/login?error=${encodeURIComponent("unexpected_error")}`);
+      .setHeader(
+        "Location",
+        `/login?error=${encodeURIComponent("unexpected_error")}`,
+      );
     res.end();
   }
 }
@@ -306,7 +333,8 @@ async function authCallbackGoogle(req: Req, res: Res) {
 
 function isValidConnectionsUpstreamPayload(data: any): boolean {
   if (!data || typeof data !== "object") return false;
-  if (!Array.isArray(data.categories) || data.categories.length !== 4) return false;
+  if (!Array.isArray(data.categories) || data.categories.length !== 4)
+    return false;
 
   for (const cat of data.categories) {
     if (!cat || typeof cat !== "object") return false;
@@ -328,7 +356,8 @@ async function connectionsPuzzle(req: Req, res: Res, dateFromPath?: string) {
     res.status(204).end();
     return;
   }
-  if (req.method !== "GET") return setJson(res, 405, { error: "Method Not Allowed" });
+  if (req.method !== "GET")
+    return setJson(res, 405, { error: "Method Not Allowed" });
 
   const date = dateFromPath || getQueryParam(req, "date");
   if (!date || !isValidDate(date)) {
@@ -346,7 +375,10 @@ async function connectionsPuzzle(req: Req, res: Res, dateFromPath?: string) {
     });
 
     if (!upstream.ok) {
-      return setJson(res, upstream.status, { error: "Upstream error", status: upstream.status });
+      return setJson(res, upstream.status, {
+        error: "Upstream error",
+        status: upstream.status,
+      });
     }
 
     const data = await upstream.json();
@@ -355,7 +387,10 @@ async function connectionsPuzzle(req: Req, res: Res, dateFromPath?: string) {
     }
 
     res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    res.setHeader(
+      "Cache-Control",
+      "public, s-maxage=3600, stale-while-revalidate=86400",
+    );
     res.status(200).end(JSON.stringify(data));
   } catch {
     setJson(res, 502, { error: "Failed to fetch upstream" });
@@ -365,7 +400,9 @@ async function connectionsPuzzle(req: Req, res: Res, dateFromPath?: string) {
 function isSolvedArray(v: unknown): v is number[] {
   return (
     Array.isArray(v) &&
-    v.every((x) => Number.isFinite(x) && Number.isInteger(x) && x >= 0 && x <= 3)
+    v.every(
+      (x) => Number.isFinite(x) && Number.isInteger(x) && x >= 0 && x <= 3,
+    )
   );
 }
 
@@ -381,21 +418,29 @@ async function connectionsProgress(req: Req, res: Res) {
 
   if (req.method === "GET") {
     const date = getQueryParam(req, "date");
-    if (!date || !isValidDate(date)) return setJson(res, 400, { error: "invalid_date" });
+    if (!date || !isValidDate(date))
+      return setJson(res, 400, { error: "invalid_date" });
 
     try {
-      const docRef = adminDb.collection("users").doc(uid).collection("connections").doc(date);
+      const docRef = adminDb
+        .collection("users")
+        .doc(uid)
+        .collection("connections")
+        .doc(date);
       const snap = await docRef.get();
       const data = snap.exists ? snap.data() : {};
 
-      const mistakesLeft = typeof data?.mistakesLeft === "number" ? data!.mistakesLeft : 4;
+      const mistakesLeft =
+        typeof data?.mistakesLeft === "number" ? data!.mistakesLeft : 4;
       const solvedCategoryIndexes = isSolvedArray(data?.solvedCategoryIndexes)
         ? (data!.solvedCategoryIndexes as number[])
         : [];
 
       setJson(res, 200, { mistakesLeft, solvedCategoryIndexes });
     } catch (e: any) {
-      setJson(res, 500, { error: typeof e?.message === "string" ? e.message : "unknown_error" });
+      setJson(res, 500, {
+        error: typeof e?.message === "string" ? e.message : "unknown_error",
+      });
     }
     return;
   }
@@ -407,7 +452,8 @@ async function connectionsProgress(req: Req, res: Res) {
       const mistakesLeft = body?.mistakesLeft;
       const solvedCategoryIndexes = body?.solvedCategoryIndexes;
 
-      if (!date || !isValidDate(date)) return setJson(res, 400, { error: "invalid_date" });
+      if (!date || !isValidDate(date))
+        return setJson(res, 400, { error: "invalid_date" });
 
       const mistakesNum = Number(mistakesLeft);
       if (!Number.isFinite(mistakesNum) || mistakesNum < 0 || mistakesNum > 4) {
@@ -418,9 +464,15 @@ async function connectionsProgress(req: Req, res: Res) {
         return setJson(res, 400, { error: "invalid_solvedCategoryIndexes" });
       }
 
-      const solvedUnique = Array.from(new Set(solvedCategoryIndexes)).sort((a, b) => a - b);
+      const solvedUnique = Array.from(new Set(solvedCategoryIndexes)).sort(
+        (a, b) => a - b,
+      );
 
-      const docRef = adminDb.collection("users").doc(uid).collection("connections").doc(date);
+      const docRef = adminDb
+        .collection("users")
+        .doc(uid)
+        .collection("connections")
+        .doc(date);
 
       await docRef.set(
         {
@@ -433,7 +485,9 @@ async function connectionsProgress(req: Req, res: Res) {
 
       setJson(res, 200, { ok: true });
     } catch (e: any) {
-      setJson(res, 500, { error: typeof e?.message === "string" ? e.message : "unknown_error" });
+      setJson(res, 500, {
+        error: typeof e?.message === "string" ? e.message : "unknown_error",
+      });
     }
     return;
   }
@@ -442,7 +496,8 @@ async function connectionsProgress(req: Req, res: Res) {
 }
 
 async function connectionsWin(req: Req, res: Res) {
-  if (req.method !== "POST") return setJson(res, 405, { error: "Method Not Allowed" });
+  if (req.method !== "POST")
+    return setJson(res, 405, { error: "Method Not Allowed" });
 
   const { get } = parseCookies(req);
   const userId = get("user_id");
@@ -453,7 +508,11 @@ async function connectionsWin(req: Req, res: Res) {
   try {
     const body = await readJsonBody(req);
     const mistakesUsed = Number(body?.mistakesUsed);
-    if (!Number.isFinite(mistakesUsed) || mistakesUsed < 0 || mistakesUsed > 4) {
+    if (
+      !Number.isFinite(mistakesUsed) ||
+      mistakesUsed < 0 ||
+      mistakesUsed > 4
+    ) {
       return setJson(res, 400, { error: "invalid_mistakesUsed" });
     }
 
@@ -464,19 +523,23 @@ async function connectionsWin(req: Req, res: Res) {
       {
         connections_completed: admin.firestore.FieldValue.increment(1),
         connections_games_played: admin.firestore.FieldValue.increment(1),
-        ["connections_in_" + mistakesUsed]: admin.firestore.FieldValue.increment(1),
+        ["connections_in_" + mistakesUsed]:
+          admin.firestore.FieldValue.increment(1),
       },
       { merge: true },
     );
 
     setJson(res, 200, { ok: true });
   } catch (e: any) {
-    setJson(res, 500, { error: typeof e?.message === "string" ? e.message : "unknown_error" });
+    setJson(res, 500, {
+      error: typeof e?.message === "string" ? e.message : "unknown_error",
+    });
   }
 }
 
 async function connectionsLoss(req: Req, res: Res) {
-  if (req.method !== "POST") return setJson(res, 405, { error: "Method Not Allowed" });
+  if (req.method !== "POST")
+    return setJson(res, 405, { error: "Method Not Allowed" });
 
   const { get } = parseCookies(req);
   const userId = get("user_id");
@@ -498,12 +561,15 @@ async function connectionsLoss(req: Req, res: Res) {
 
     setJson(res, 200, { ok: true });
   } catch (e: any) {
-    setJson(res, 500, { error: typeof e?.message === "string" ? e.message : "unknown_error" });
+    setJson(res, 500, {
+      error: typeof e?.message === "string" ? e.message : "unknown_error",
+    });
   }
 }
 
 async function connectionsStats(req: Req, res: Res) {
-  if (req.method !== "GET") return setJson(res, 405, { error: "Method Not Allowed" });
+  if (req.method !== "GET")
+    return setJson(res, 405, { error: "Method Not Allowed" });
 
   const { get } = parseCookies(req);
   const userId = get("user_id");
@@ -513,7 +579,10 @@ async function connectionsStats(req: Req, res: Res) {
 
   try {
     const { adminDb } = await import("../lib/firebase-admin.js");
-    const snap = await adminDb.collection("users").doc(decodeURIComponent(userId)).get();
+    const snap = await adminDb
+      .collection("users")
+      .doc(decodeURIComponent(userId))
+      .get();
 
     const data = (snap.exists ? snap.data() : {}) as Record<string, any>;
     const games_played = Number(data?.connections_games_played || 0);
@@ -526,11 +595,21 @@ async function connectionsStats(req: Req, res: Res) {
       distribution[k] = Number.isFinite(v) ? v : 0;
     }
 
-    const winRate = games_played > 0 ? Math.round((connections_completed / games_played) * 100) : 0;
+    const winRate =
+      games_played > 0
+        ? Math.round((connections_completed / games_played) * 100)
+        : 0;
 
-    setJson(res, 200, { games_played, connections_completed, winRate, distribution });
+    setJson(res, 200, {
+      games_played,
+      connections_completed,
+      winRate,
+      distribution,
+    });
   } catch (e: any) {
-    setJson(res, 500, { error: typeof e?.message === "string" ? e.message : "unknown_error" });
+    setJson(res, 500, {
+      error: typeof e?.message === "string" ? e.message : "unknown_error",
+    });
   }
 }
 
@@ -544,7 +623,8 @@ async function wordlePuzzle(req: Req, res: Res, dateFromPath?: string) {
     return;
   }
 
-  if (req.method !== "GET") return setJson(res, 405, { error: "Method Not Allowed" });
+  if (req.method !== "GET")
+    return setJson(res, 405, { error: "Method Not Allowed" });
 
   const date = dateFromPath || getQueryParam(req, "date");
   if (!date || !isValidDate(date)) {
@@ -562,18 +642,27 @@ async function wordlePuzzle(req: Req, res: Res, dateFromPath?: string) {
     });
 
     if (!upstream.ok) {
-      return setJson(res, upstream.status, { error: "Upstream error", status: upstream.status });
+      return setJson(res, upstream.status, {
+        error: "Upstream error",
+        status: upstream.status,
+      });
     }
 
     const data = (await upstream.json()) as { solution?: unknown };
-    const solution = typeof data?.solution === "string" ? data.solution.trim().toLowerCase() : "";
+    const solution =
+      typeof data?.solution === "string"
+        ? data.solution.trim().toLowerCase()
+        : "";
 
     if (!/^[a-z]{5}$/.test(solution)) {
       return setJson(res, 502, { error: "Invalid upstream payload" });
     }
 
     res.setHeader("Content-Type", "application/json; charset=utf-8");
-    res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    res.setHeader(
+      "Cache-Control",
+      "public, s-maxage=3600, stale-while-revalidate=86400",
+    );
     res.status(200).end(JSON.stringify({ date, solution }));
   } catch {
     setJson(res, 502, { error: "Failed to fetch upstream" });
@@ -592,17 +681,24 @@ async function wordleProgress(req: Req, res: Res) {
 
   if (req.method === "GET") {
     const date = getQueryParam(req, "date");
-    if (!date || !isValidDate(date)) return setJson(res, 400, { error: "invalid_date" });
+    if (!date || !isValidDate(date))
+      return setJson(res, 400, { error: "invalid_date" });
 
     try {
-      const docRef = adminDb.collection("users").doc(uid).collection("wordle").doc(date);
+      const docRef = adminDb
+        .collection("users")
+        .doc(uid)
+        .collection("wordle")
+        .doc(date);
       const snap = await docRef.get();
       const data = snap.exists ? snap.data() : {};
       const guesses = Array.isArray(data?.guesses) ? data!.guesses : [];
       const cols = typeof data?.cols === "number" ? data!.cols : undefined;
       setJson(res, 200, { guesses, cols });
     } catch (e: any) {
-      setJson(res, 500, { error: typeof e?.message === "string" ? e.message : "unknown_error" });
+      setJson(res, 500, {
+        error: typeof e?.message === "string" ? e.message : "unknown_error",
+      });
     }
     return;
   }
@@ -614,13 +710,21 @@ async function wordleProgress(req: Req, res: Res) {
       const guesses: unknown = body?.guesses;
       const cols: unknown = body?.cols;
 
-      if (!date || !isValidDate(date)) return setJson(res, 400, { error: "invalid_date" });
-      if (!Array.isArray(guesses) || !guesses.every((g) => typeof g === "string")) {
+      if (!date || !isValidDate(date))
+        return setJson(res, 400, { error: "invalid_date" });
+      if (
+        !Array.isArray(guesses) ||
+        !guesses.every((g) => typeof g === "string")
+      ) {
         return setJson(res, 400, { error: "invalid_guesses" });
       }
 
       const colsNum = typeof cols === "number" ? cols : undefined;
-      const docRef = adminDb.collection("users").doc(uid).collection("wordle").doc(date);
+      const docRef = adminDb
+        .collection("users")
+        .doc(uid)
+        .collection("wordle")
+        .doc(date);
 
       await docRef.set(
         { guesses, cols: colsNum, updatedAt: new Date().toISOString() },
@@ -629,7 +733,9 @@ async function wordleProgress(req: Req, res: Res) {
 
       setJson(res, 200, { ok: true });
     } catch (e: any) {
-      setJson(res, 500, { error: typeof e?.message === "string" ? e.message : "unknown_error" });
+      setJson(res, 500, {
+        error: typeof e?.message === "string" ? e.message : "unknown_error",
+      });
     }
     return;
   }
@@ -638,7 +744,8 @@ async function wordleProgress(req: Req, res: Res) {
 }
 
 async function wordleWin(req: Req, res: Res) {
-  if (req.method !== "POST") return setJson(res, 405, { error: "Method Not Allowed" });
+  if (req.method !== "POST")
+    return setJson(res, 405, { error: "Method Not Allowed" });
 
   const { get } = parseCookies(req);
   const userId = get("user_id");
@@ -667,12 +774,15 @@ async function wordleWin(req: Req, res: Res) {
 
     setJson(res, 200, { ok: true });
   } catch (e: any) {
-    setJson(res, 500, { error: typeof e?.message === "string" ? e.message : "unknown_error" });
+    setJson(res, 500, {
+      error: typeof e?.message === "string" ? e.message : "unknown_error",
+    });
   }
 }
 
 async function wordleLoss(req: Req, res: Res) {
-  if (req.method !== "POST") return setJson(res, 405, { error: "Method Not Allowed" });
+  if (req.method !== "POST")
+    return setJson(res, 405, { error: "Method Not Allowed" });
 
   const { get } = parseCookies(req);
   const userId = get("user_id");
@@ -694,12 +804,15 @@ async function wordleLoss(req: Req, res: Res) {
 
     setJson(res, 200, { ok: true });
   } catch (e: any) {
-    setJson(res, 500, { error: typeof e?.message === "string" ? e.message : "unknown_error" });
+    setJson(res, 500, {
+      error: typeof e?.message === "string" ? e.message : "unknown_error",
+    });
   }
 }
 
 async function wordleStats(req: Req, res: Res) {
-  if (req.method !== "GET") return setJson(res, 405, { error: "Method Not Allowed" });
+  if (req.method !== "GET")
+    return setJson(res, 405, { error: "Method Not Allowed" });
 
   const { get } = parseCookies(req);
   const userId = get("user_id");
@@ -709,7 +822,10 @@ async function wordleStats(req: Req, res: Res) {
 
   try {
     const { adminDb } = await import("../lib/firebase-admin.js");
-    const snap = await adminDb.collection("users").doc(decodeURIComponent(userId)).get();
+    const snap = await adminDb
+      .collection("users")
+      .doc(decodeURIComponent(userId))
+      .get();
 
     const data = (snap.exists ? snap.data() : {}) as Record<string, any>;
     const games_played = Number(data?.games_played || 0);
@@ -722,11 +838,21 @@ async function wordleStats(req: Req, res: Res) {
       distribution[k] = v > 0 ? v : 0;
     }
 
-    const winRate = games_played > 0 ? Math.round((wordles_completed / games_played) * 100) : 0;
+    const winRate =
+      games_played > 0
+        ? Math.round((wordles_completed / games_played) * 100)
+        : 0;
 
-    setJson(res, 200, { games_played, wordles_completed, winRate, distribution });
+    setJson(res, 200, {
+      games_played,
+      wordles_completed,
+      winRate,
+      distribution,
+    });
   } catch (e: any) {
-    setJson(res, 500, { error: typeof e?.message === "string" ? e.message : "unknown_error" });
+    setJson(res, 500, {
+      error: typeof e?.message === "string" ? e.message : "unknown_error",
+    });
   }
 }
 
