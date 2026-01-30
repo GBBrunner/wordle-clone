@@ -1,6 +1,6 @@
 import { useAppTheme } from "@/lib/theme/context";
-import React, { useEffect, useMemo, useRef } from "react";
 import { stringifyAny } from "@/lib/utils/stringify";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 
 type Stats = {
@@ -28,13 +28,13 @@ export default function StatsChart({
   const { colors } = useAppTheme();
 
   const keys = useMemo(() => {
-    if (distributionKeys && distributionKeys.length > 0) return distributionKeys;
+    if (distributionKeys && distributionKeys.length > 0)
+      return distributionKeys;
     return Array.from({ length: 6 }, (_, i) => `wordle_in_${i + 1}`);
   }, [distributionKeys]);
 
   const counts = useMemo(
-    () =>
-      keys.map((k) => stats.distribution[k] || 0),
+    () => keys.map((k) => stats.distribution[k] || 0),
     [keys, stats],
   );
   const maxCount = Math.max(1, ...counts);
@@ -77,16 +77,15 @@ export default function StatsChart({
     <View style={styles.container}>
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
       <Text style={[styles.meta, { color: colors.text }]}>
-        Games played: {stats.games_played} Wins: {completed} Win Rate: {stats.winRate}%
+        Games played: {stats.games_played} Wins: {completed} Win Rate:{" "}
+        {stats.winRate}%
       </Text>
       <View style={{ marginTop: 8, gap: 6 }}>
         {counts.map((count, i) => (
           <View key={i} style={styles.row}>
             <Text style={[styles.label, { color: colors.text }]}>
               {stringifyAny(
-                distributionLabels
-                  ? distributionLabels(keys[i], i)
-                  : i + 1,
+                distributionLabels ? distributionLabels(keys[i], i) : i + 1,
               )}
             </Text>
             <View style={[styles.barTrack, { backgroundColor: colors.icon }]}>
@@ -100,7 +99,9 @@ export default function StatsChart({
                 ]}
               />
             </View>
-            <Text style={[styles.count, { color: colors.text }]}>{stringifyAny(count)}</Text>
+            <Text style={[styles.count, { color: colors.text }]}>
+              {stringifyAny(count)}
+            </Text>
           </View>
         ))}
       </View>

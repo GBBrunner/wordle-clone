@@ -85,16 +85,14 @@ export default async function handler(req: Req, res: Res) {
         : 0;
 
     res.setHeader("Content-Type", "application/json");
-    res
-      .status(200)
-      .end(
-        JSON.stringify({
-          games_played,
-          connections_completed,
-          winRate,
-          distribution,
-        }),
-      );
+    res.status(200).end(
+      JSON.stringify({
+        games_played,
+        connections_completed,
+        winRate,
+        distribution,
+      }),
+    );
   } catch (e: any) {
     const msg = typeof e?.message === "string" ? e.message : "unknown_error";
     res.setHeader("Content-Type", "application/json");

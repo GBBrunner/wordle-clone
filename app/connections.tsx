@@ -1,4 +1,5 @@
 "use client";
+import { useAuth } from "@/hooks/use-auth";
 import {
   fetchConnectionsPuzzle,
   getNYTConnectionsDateString,
@@ -7,11 +8,10 @@ import type {
   ConnectionsCategory,
   ConnectionsPuzzle,
 } from "@/lib/connections/types";
-import { useAuth } from "@/hooks/use-auth";
 import { useAppTheme } from "@/lib/theme/context";
 import { readableTextOn } from "@/lib/theme/theme";
-import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "expo-router";
+import React, { useEffect, useMemo, useState } from "react";
 import { FiArrowLeft } from "react-icons/fi";
 import {
   ActivityIndicator,
@@ -81,7 +81,9 @@ function getLocalProgressKey(d: string) {
 
 function loadLocalProgress(d: string): ConnectionsProgress | null {
   if (!isBrowserStorageAvailable()) return null;
-  const parsed = safeParseJSON<any>(window.localStorage.getItem(getLocalProgressKey(d)));
+  const parsed = safeParseJSON<any>(
+    window.localStorage.getItem(getLocalProgressKey(d)),
+  );
   const mistakesLeft = Number(parsed?.mistakesLeft);
   const solvedCategoryIndexes = parsed?.solvedCategoryIndexes;
   if (!Number.isFinite(mistakesLeft) || mistakesLeft < 0 || mistakesLeft > 4)
@@ -105,7 +107,10 @@ function loadLocalProgress(d: string): ConnectionsProgress | null {
 function saveLocalProgress(d: string, progress: ConnectionsProgress) {
   if (!isBrowserStorageAvailable()) return;
   try {
-    window.localStorage.setItem(getLocalProgressKey(d), JSON.stringify(progress));
+    window.localStorage.setItem(
+      getLocalProgressKey(d),
+      JSON.stringify(progress),
+    );
   } catch {
     // ignore
   }
@@ -125,7 +130,9 @@ function loadLocalStats(): ConnectionsStats {
     },
   };
   if (!isBrowserStorageAvailable()) return base;
-  const parsed = safeParseJSON<any>(window.localStorage.getItem(CONNECTIONS_STATS_KEY));
+  const parsed = safeParseJSON<any>(
+    window.localStorage.getItem(CONNECTIONS_STATS_KEY),
+  );
   const games_played = Number(parsed?.games_played || 0);
   const connections_completed = Number(parsed?.connections_completed || 0);
   const distribution: Record<string, number> = { ...base.distribution };
@@ -322,7 +329,9 @@ export default function ConnectionsPage() {
           }
           const data = (await resp.json()) as any;
           const mistakesLeft = Number(data?.mistakesLeft);
-          const solvedCategoryIndexes = Array.isArray(data?.solvedCategoryIndexes)
+          const solvedCategoryIndexes = Array.isArray(
+            data?.solvedCategoryIndexes,
+          )
             ? data.solvedCategoryIndexes
             : [];
           if (
@@ -538,9 +547,11 @@ export default function ConnectionsPage() {
           >
             <FiArrowLeft size={20} color={colors.text} />
           </Pressable>
-          <Text style={[styles.title, { color: colors.text }]}>Connections</Text>
+          <Text style={[styles.title, { color: colors.text }]}>
+            Connections
+          </Text>
         </View>
-        <Text style={[styles.subtitle, { color: colors.text }]}> 
+        <Text style={[styles.subtitle, { color: colors.text }]}>
           {(puzzle?.print_date ?? date) || "\u00A0"}
         </Text>
       </View>
@@ -734,7 +745,9 @@ export default function ConnectionsPage() {
           </View>
 
           {isDone && stats && (
-            <View style={{ marginTop: 10, alignSelf: "center", width: gridWidth }}>
+            <View
+              style={{ marginTop: 10, alignSelf: "center", width: gridWidth }}
+            >
               <StatsChart
                 title="Connections Stats"
                 stats={stats}
@@ -760,7 +773,9 @@ export default function ConnectionsPage() {
           onRequestClose={() => setShowStatsModal(false)}
         >
           <View style={styles.modalBackdrop}>
-            <View style={[styles.modalCard, { backgroundColor: colors.background }]}>
+            <View
+              style={[styles.modalCard, { backgroundColor: colors.background }]}
+            >
               <View
                 style={{
                   flexDirection: "row",
@@ -768,12 +783,19 @@ export default function ConnectionsPage() {
                   alignItems: "center",
                 }}
               >
-                <Text style={[styles.title, { color: colors.text }]}>Stats</Text>
+                <Text style={[styles.title, { color: colors.text }]}>
+                  Stats
+                </Text>
                 <Pressable
                   onPress={() => setShowStatsModal(false)}
                   style={[styles.controlBtn, { backgroundColor: colors.tint }]}
                 >
-                  <Text style={[styles.controlText, { color: readableTextOn(colors.tint) }]}>
+                  <Text
+                    style={[
+                      styles.controlText,
+                      { color: readableTextOn(colors.tint) },
+                    ]}
+                  >
                     Close
                   </Text>
                 </Pressable>
@@ -789,7 +811,9 @@ export default function ConnectionsPage() {
                     "connections_in_3",
                     "connections_in_4",
                   ]}
-                  distributionLabels={(key) => key.replace("connections_in_", "")}
+                  distributionLabels={(key) =>
+                    key.replace("connections_in_", "")
+                  }
                 />
               </View>
             </View>

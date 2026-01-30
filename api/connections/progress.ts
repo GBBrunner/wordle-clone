@@ -41,11 +41,7 @@ function isSolvedArray(v: unknown): v is number[] {
   return (
     Array.isArray(v) &&
     v.every(
-      (x) =>
-        Number.isFinite(x) &&
-        Number.isInteger(x) &&
-        x >= 0 &&
-        x <= 3,
+      (x) => Number.isFinite(x) && Number.isInteger(x) && x >= 0 && x <= 3,
     )
   );
 }

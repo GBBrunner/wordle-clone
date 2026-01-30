@@ -45,7 +45,11 @@ export default async function handler(req: Req, res: Res) {
     const body =
       typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
     const mistakesUsed = Number(body?.mistakesUsed);
-    if (!Number.isFinite(mistakesUsed) || mistakesUsed < 0 || mistakesUsed > 4) {
+    if (
+      !Number.isFinite(mistakesUsed) ||
+      mistakesUsed < 0 ||
+      mistakesUsed > 4
+    ) {
       res.status(400).end(JSON.stringify({ error: "invalid_mistakesUsed" }));
       return;
     }
@@ -75,9 +79,8 @@ export default async function handler(req: Req, res: Res) {
       {
         connections_completed: admin.firestore.FieldValue.increment(1),
         connections_games_played: admin.firestore.FieldValue.increment(1),
-        ["connections_in_" + mistakesUsed]: admin.firestore.FieldValue.increment(
-          1,
-        ),
+        ["connections_in_" + mistakesUsed]:
+          admin.firestore.FieldValue.increment(1),
       },
       { merge: true },
     );

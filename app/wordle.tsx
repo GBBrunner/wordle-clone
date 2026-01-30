@@ -5,8 +5,8 @@ import { useAppTheme } from "@/lib/theme/context";
 import { readableTextOn } from "@/lib/theme/theme";
 // On web, persistence is handled via serverless API using Firebase Admin.
 // We avoid client Firestore writes to prevent auth/rules issues.
-import React, { useEffect, useRef, useState } from "react";
 import { stringifyAny } from "@/lib/utils/stringify";
+import React, { useEffect, useRef, useState } from "react";
 import {
     Modal,
     Platform,
@@ -408,7 +408,9 @@ export default function WordlePage() {
       </View>
 
       {!!message && (
-        <Text style={[styles.message, { color: colors.text }]}>{stringifyAny(message)}</Text>
+        <Text style={[styles.message, { color: colors.text }]}>
+          {stringifyAny(message)}
+        </Text>
       )}
 
       {!done ? (
