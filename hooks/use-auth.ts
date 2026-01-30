@@ -3,13 +3,13 @@ import {
     flushPendingConnectionsProgresses,
 } from "@/lib/connections/pending";
 import {
+    flushPendingStrandsEvents,
+    flushPendingStrandsProgresses,
+} from "@/lib/strands/pending";
+import {
     flushPendingWordleEvents,
     flushPendingWordleProgresses,
 } from "@/lib/wordle/pending";
-import {
-  flushPendingStrandsEvents,
-  flushPendingStrandsProgresses,
-} from "@/lib/strands/pending";
 import { useCallback, useEffect, useState } from "react";
 
 export function useAuth() {

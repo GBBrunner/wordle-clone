@@ -57,7 +57,11 @@ function normalizeFoundPaths(v: unknown): PendingStrandsProgress["foundPaths"] {
     const coordsRaw = (item as any).coords;
     if (kind !== "theme" && kind !== "spangram") continue;
     if (!word) continue;
-    if (!Array.isArray(coordsRaw) || coordsRaw.length < 2 || coordsRaw.length > 80)
+    if (
+      !Array.isArray(coordsRaw) ||
+      coordsRaw.length < 2 ||
+      coordsRaw.length > 80
+    )
       continue;
     const coords: Array<{ r: number; c: number }> = [];
     let ok = true;
@@ -151,7 +155,8 @@ export async function flushPendingStrandsEvents(): Promise<{
   for (let i = 0; i < events.length; i++) {
     const e = events[i];
     try {
-      const endpoint = e.type === "win" ? "/api/strands/win" : "/api/strands/loss";
+      const endpoint =
+        e.type === "win" ? "/api/strands/win" : "/api/strands/loss";
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

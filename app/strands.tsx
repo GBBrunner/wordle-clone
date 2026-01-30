@@ -1,27 +1,27 @@
 import GoogleSignInLink from "@/components/GoogleSignInLink";
 import { useAuth } from "@/hooks/use-auth";
+import {
+    fetchStrandsPuzzle,
+    getNYTStrandsDateString,
+    submitStrandsWord,
+} from "@/lib/strands/api";
+import {
+    getPendingStrandsProgress,
+    queuePendingStrandsEvent,
+    queuePendingStrandsProgress,
+} from "@/lib/strands/pending";
+import type { StrandsPuzzle } from "@/lib/strands/types";
 import { useAppTheme } from "@/lib/theme/context";
 import { readableTextOn } from "@/lib/theme/theme";
-import {
-  fetchStrandsPuzzle,
-  getNYTStrandsDateString,
-  submitStrandsWord,
-} from "@/lib/strands/api";
-import type { StrandsPuzzle } from "@/lib/strands/types";
-import {
-  getPendingStrandsProgress,
-  queuePendingStrandsEvent,
-  queuePendingStrandsProgress,
-} from "@/lib/strands/pending";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  PanResponder,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
+    ActivityIndicator,
+    PanResponder,
+    Pressable,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 import Svg, { Line } from "react-native-svg";
 
@@ -46,7 +46,7 @@ function keyFor(r: number, c: number) {
 function isAdjacent(a: Coords, b: Coords) {
   const dr = Math.abs(a.r - b.r);
   const dc = Math.abs(a.c - b.c);
-  return (dr <= 1 && dc <= 1 && (dr !== 0 || dc !== 0));
+  return dr <= 1 && dc <= 1 && (dr !== 0 || dc !== 0);
 }
 
 export default function StrandsPage() {
@@ -150,7 +150,12 @@ export default function StrandsPage() {
           for (const c of coordsRaw) {
             const r = Number((c as any)?.r);
             const cc = Number((c as any)?.c);
-            if (!Number.isFinite(r) || !Number.isInteger(r) || r < 0 || r > 50) {
+            if (
+              !Number.isFinite(r) ||
+              !Number.isInteger(r) ||
+              r < 0 ||
+              r > 50
+            ) {
               ok = false;
               break;
             }
@@ -484,7 +489,12 @@ export default function StrandsPage() {
     // Ignore touches in the gap area.
     const insideX = x - c * pitch;
     const insideY = y - r * pitch;
-    if (insideX < 0 || insideY < 0 || insideX > boardSize || insideY > boardSize)
+    if (
+      insideX < 0 ||
+      insideY < 0 ||
+      insideX > boardSize ||
+      insideY > boardSize
+    )
       return null;
 
     return { r, c };
@@ -511,7 +521,8 @@ export default function StrandsPage() {
         // Allow dragging back one step to undo.
         if (prev.length >= 2) {
           const prev2 = prev[prev.length - 2];
-          if (prev2.r === cell.r && prev2.c === cell.c) return prev.slice(0, -1);
+          if (prev2.r === cell.r && prev2.c === cell.c)
+            return prev.slice(0, -1);
         }
 
         // Do not revisit a cell in the same path.
@@ -561,14 +572,19 @@ export default function StrandsPage() {
   }, [selected, puzzle, boardSize]);
 
   const foundPathLines = useMemo(() => {
-    if (!puzzle) return [] as Array<{ pts: Array<{ x: number; y: number }>; color: string }>;
+    if (!puzzle)
+      return [] as Array<{
+        pts: Array<{ x: number; y: number }>;
+        color: string;
+      }>;
     const pitch = boardSize + cellGap;
     const radius = boardSize / 2;
 
     const themeFoundBg = "#2e7d32";
     const spangramFoundBg = "#f9a825";
 
-    const out: Array<{ pts: Array<{ x: number; y: number }>; color: string }> = [];
+    const out: Array<{ pts: Array<{ x: number; y: number }>; color: string }> =
+      [];
     for (const p of foundPaths) {
       if (!p?.coords?.length || p.coords.length < 2) continue;
       const pts: Array<{ x: number; y: number }> = [];
@@ -596,8 +612,14 @@ export default function StrandsPage() {
   const boardPixelSize = useMemo(() => {
     if (!puzzle) return { w: 0, h: 0 };
     const pitch = boardSize + cellGap;
-    const w = puzzle.cols > 0 ? puzzle.cols * boardSize + (puzzle.cols - 1) * cellGap : 0;
-    const h = puzzle.rows > 0 ? puzzle.rows * boardSize + (puzzle.rows - 1) * cellGap : 0;
+    const w =
+      puzzle.cols > 0
+        ? puzzle.cols * boardSize + (puzzle.cols - 1) * cellGap
+        : 0;
+    const h =
+      puzzle.rows > 0
+        ? puzzle.rows * boardSize + (puzzle.rows - 1) * cellGap
+        : 0;
     // 'w/h' align to the Pressable grid because rows use gap=cellGap.
     return { w, h };
   }, [puzzle, boardSize]);
@@ -620,7 +642,9 @@ export default function StrandsPage() {
         </View>
       ) : error ? (
         <View style={styles.center}>
-          <Text style={{ color: colors.text, textAlign: "center" }}>{error}</Text>
+          <Text style={{ color: colors.text, textAlign: "center" }}>
+            {error}
+          </Text>
           <Text style={{ color: colors.text, textAlign: "center" }}>
             Try reloading.
           </Text>
@@ -695,7 +719,9 @@ export default function StrandsPage() {
                 {row.split("").map((ch, c) => {
                   const selectedHere = selectedKeySet.has(keyFor(r, c));
 
-                  const isSpangramFound = foundSpangramCellSet.has(keyFor(r, c));
+                  const isSpangramFound = foundSpangramCellSet.has(
+                    keyFor(r, c),
+                  );
                   const isThemeFound = foundThemeCellSet.has(keyFor(r, c));
 
                   const themeFoundBg = "#2e7d32";

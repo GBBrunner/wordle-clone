@@ -663,9 +663,14 @@ async function strandsPuzzle(req: Req, res: Res, dateFromPath?: string) {
     }
 
     const startingBoard: unknown = (data as any).startingBoard;
-    const boardArr = Array.isArray(startingBoard) ? (startingBoard as any[]) : [];
+    const boardArr = Array.isArray(startingBoard)
+      ? (startingBoard as any[])
+      : [];
     const rows = boardArr.length;
-    const cols = rows > 0 && typeof boardArr[0] === "string" ? (boardArr[0] as string).length : 0;
+    const cols =
+      rows > 0 && typeof boardArr[0] === "string"
+        ? (boardArr[0] as string).length
+        : 0;
 
     const boardOk =
       Array.isArray(startingBoard) &&
@@ -719,10 +724,12 @@ async function strandsSubmit(req: Req, res: Res) {
   const date: string | undefined = body?.date;
   const wordRaw: unknown = body?.word;
 
-  if (!date || !isValidDate(date)) return setJson(res, 400, { error: "invalid_date" });
+  if (!date || !isValidDate(date))
+    return setJson(res, 400, { error: "invalid_date" });
 
   const word = normalizeStrandsWord(wordRaw);
-  if (!/^[A-Z]{2,}$/.test(word)) return setJson(res, 400, { error: "invalid_word" });
+  if (!/^[A-Z]{2,}$/.test(word))
+    return setJson(res, 400, { error: "invalid_word" });
 
   const nytUrl = `https://www.nytimes.com/svc/strands/v2/${date}.json`;
   try {
@@ -791,7 +798,9 @@ async function strandsProgress(req: Req, res: Res) {
           ? data!.foundWords.filter((w: any) => typeof w === "string")
           : [];
       const foundSpangram = Boolean(data?.foundSpangram);
-      const foundPaths = Array.isArray(data?.foundPaths) ? data!.foundPaths : [];
+      const foundPaths = Array.isArray(data?.foundPaths)
+        ? data!.foundPaths
+        : [];
       const gaveUp = Boolean(data?.gaveUp);
       setJson(res, 200, { foundThemeWords, foundSpangram, foundPaths, gaveUp });
     } catch (e: any) {
@@ -806,7 +815,8 @@ async function strandsProgress(req: Req, res: Res) {
     try {
       const body = await readJsonBody(req);
       const date: string | undefined = body?.date;
-      const foundThemeWords: unknown = body?.foundThemeWords ?? body?.foundWords;
+      const foundThemeWords: unknown =
+        body?.foundThemeWords ?? body?.foundWords;
       const foundSpangram: unknown = body?.foundSpangram;
       const foundPaths: unknown = body?.foundPaths;
       const gaveUp: unknown = body?.gaveUp;
@@ -843,18 +853,32 @@ async function strandsProgress(req: Req, res: Res) {
           const coordsRaw = (item as any).coords;
           if (kind !== "theme" && kind !== "spangram") continue;
           if (!/^[A-Z]{2,}$/.test(word)) continue;
-          if (!Array.isArray(coordsRaw) || coordsRaw.length < 2 || coordsRaw.length > 80)
+          if (
+            !Array.isArray(coordsRaw) ||
+            coordsRaw.length < 2 ||
+            coordsRaw.length > 80
+          )
             continue;
           const coords: Array<{ r: number; c: number }> = [];
           let ok = true;
           for (const c of coordsRaw) {
             const r = Number((c as any)?.r);
             const cc = Number((c as any)?.c);
-            if (!Number.isFinite(r) || !Number.isInteger(r) || r < 0 || r > 50) {
+            if (
+              !Number.isFinite(r) ||
+              !Number.isInteger(r) ||
+              r < 0 ||
+              r > 50
+            ) {
               ok = false;
               break;
             }
-            if (!Number.isFinite(cc) || !Number.isInteger(cc) || cc < 0 || cc > 50) {
+            if (
+              !Number.isFinite(cc) ||
+              !Number.isInteger(cc) ||
+              cc < 0 ||
+              cc > 50
+            ) {
               ok = false;
               break;
             }
