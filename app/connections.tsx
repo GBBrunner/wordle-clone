@@ -26,6 +26,11 @@ import {
   useWindowDimensions,
 } from "react-native";
 import StatsChart from "../components/StatsChart";
+import GoogleSignInLink from "../components/GoogleSignInLink";
+import {
+  queuePendingConnectionsEvent,
+  queuePendingConnectionsProgress,
+} from "../lib/connections/pending";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 function stringifyError(value: any, fallback = "") {
@@ -614,6 +619,8 @@ export default function ConnectionsPage() {
       }).catch(() => {});
     } else {
       saveLocalProgress(date, payload);
+      // Also queue for upload once the user signs in.
+      queuePendingConnectionsProgress({ date, ...payload });
     }
   }, [puzzle, date, signedIn, progressLoaded, mistakesLeft, solved]);
 
@@ -678,6 +685,21 @@ export default function ConnectionsPage() {
           }
         } else {
           updateLocal();
+          // Queue for later server-side stat increment once signed in.
+          if (isComplete) {
+            queuePendingConnectionsEvent({
+              type: "win",
+              date,
+              mistakesUsed,
+              createdAt: Date.now(),
+            });
+          } else {
+            queuePendingConnectionsEvent({
+              type: "loss",
+              date,
+              createdAt: Date.now(),
+            });
+          }
         }
       } catch {
         if (!signedIn) updateLocal();
@@ -942,7 +964,16 @@ export default function ConnectionsPage() {
             </Pressable>
           </View>
 
-          {isDone && stats && (
+          {isDone && signedIn === false && (
+            <View style={{ marginTop: 10, gap: 10, alignItems: "center" }}>
+              <Text style={{ color: colors.text, textAlign: "center" }}>
+                Please sign in to save stats.
+              </Text>
+              <GoogleSignInLink />
+            </View>
+          )}
+
+          {isDone && signedIn && stats && (
             <View
               style={{ marginTop: 10, alignSelf: "center", width: gridWidth }}
             >
@@ -963,7 +994,7 @@ export default function ConnectionsPage() {
         </>
       )}
 
-      {Platform.OS !== "web" && stats && (
+      {Platform.OS !== "web" && signedIn && stats && (
         <Modal
           visible={showStatsModal}
           transparent

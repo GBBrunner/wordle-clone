@@ -1,4 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
+import {
+  flushPendingWordleEvents,
+  flushPendingWordleProgresses,
+} from "@/lib/wordle/pending";
+import {
+  flushPendingConnectionsEvents,
+  flushPendingConnectionsProgresses,
+} from "@/lib/connections/pending";
 
 export function useAuth() {
   const [isClient, setIsClient] = useState(false);
@@ -25,6 +33,18 @@ export function useAuth() {
       refresh();
     }
   }, [isClient, refresh]);
+
+  useEffect(() => {
+    if (!isClient) return;
+    if (!signedIn) return;
+    // Best-effort flush; failures leave events queued.
+    (async () => {
+      await flushPendingWordleProgresses();
+      await flushPendingConnectionsProgresses();
+      await flushPendingWordleEvents();
+      await flushPendingConnectionsEvents();
+    })().catch(() => {});
+  }, [isClient, signedIn]);
 
   return { signedIn, refresh, isClient };
 }

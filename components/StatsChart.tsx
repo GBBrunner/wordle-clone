@@ -33,9 +33,11 @@ export default function StatsChart({
     return Array.from({ length: 6 }, (_, i) => `wordle_in_${i + 1}`);
   }, [distributionKeys]);
 
+  const distribution = (stats as any)?.distribution || {};
+
   const counts = useMemo(
-    () => keys.map((k) => stats.distribution[k] || 0),
-    [keys, stats],
+    () => keys.map((k) => distribution[k] || 0),
+    [keys, distribution],
   );
   const maxCount = Math.max(1, ...counts);
   const BAR_MAX = 220; // px

@@ -19,6 +19,7 @@ import {
     useWindowDimensions,
 } from "react-native";
 import Board from "../components/Board";
+import GoogleSignInLink from "../components/GoogleSignInLink";
 import Keyboard from "../components/Keyboard";
 import StatsChart from "../components/StatsChart";
 import { getAllowedGuessesSet, getWordsForLength } from "../data/words";
@@ -28,6 +29,11 @@ import {
     getNYTWordleDateString,
     randomWord,
 } from "../lib/wordle/engine";
+import {
+  getPendingWordleProgress,
+  queuePendingWordleEvent,
+  queuePendingWordleProgress,
+} from "../lib/wordle/pending";
 
 const DAILY_WORD_LEN = 5;
 const MAX_ROWS = 6;
@@ -83,55 +89,63 @@ export default function WordlePage() {
       resetGameState();
       if (mode === "daily") {
         const date = getNYTWordleDateString();
-        fetch(`/api/wordle/progress?date=${date}`, {
-          method: "GET",
-          credentials: "include",
-        })
-          .then((r) => r.json())
-          .then((data) => {
-            const gs: string[] = Array.isArray(data?.guesses)
-              ? data.guesses
-              : [];
-            const cols = DAILY_WORD_LEN;
-            const valid = gs.filter(
-              (g) => typeof g === "string" && g.length === cols,
-            );
-            if (valid.length > 0) {
-              setGuesses(valid);
-              const evals = valid.map((g) => evaluateGuess(word, g));
-              setEvaluations(evals);
-              setKeyStates((prev) => {
-                const next: Record<string, "correct" | "present" | "absent"> =
-                  {};
-                for (let gi = 0; gi < valid.length; gi++) {
-                  const g = valid[gi];
-                  const erow = evals[gi];
-                  for (let i = 0; i < cols; i++) {
-                    const ch = g[i];
-                    const prevState = next[ch];
-                    const now = erow[i];
-                    if (
-                      now === "correct" ||
-                      (prevState !== "correct" && now === "present") ||
-                      (!prevState && now === "absent")
-                    ) {
-                      next[ch] = now;
-                    }
-                  }
+        const applyProgress = (gs: string[]) => {
+          const cols = DAILY_WORD_LEN;
+          const valid = gs.filter((g) => typeof g === "string" && g.length === cols);
+          if (valid.length === 0) return;
+
+          setGuesses(valid);
+          const evals = valid.map((g) => evaluateGuess(word, g));
+          setEvaluations(evals);
+          setKeyStates(() => {
+            const next: Record<string, "correct" | "present" | "absent"> = {};
+            for (let gi = 0; gi < valid.length; gi++) {
+              const g = valid[gi];
+              const erow = evals[gi];
+              for (let i = 0; i < cols; i++) {
+                const ch = g[i];
+                const prevState = next[ch];
+                const now = erow[i];
+                if (
+                  now === "correct" ||
+                  (prevState !== "correct" && now === "present") ||
+                  (!prevState && now === "absent")
+                ) {
+                  next[ch] = now;
                 }
-                return next;
-              });
-              const last = valid[valid.length - 1];
-              if (last === word) {
-                setDone(true);
-                setMessage("You solved today's puzzle!");
               }
             }
+            return next;
+          });
+
+          const last = valid[valid.length - 1];
+          if (last === word) {
+            setDone(true);
+            setMessage("You solved today's puzzle!");
+          } else if (valid.length >= MAX_ROWS) {
+            setDone(true);
+            setMessage(`Out of tries. The word was ${word.toUpperCase()}`);
+          }
+        };
+
+        if (signedIn) {
+          fetch(`/api/wordle/progress?date=${date}`, {
+            method: "GET",
+            credentials: "include",
           })
-          .catch(() => {});
+            .then((r) => r.json())
+            .then((data) => {
+              const gs: string[] = Array.isArray(data?.guesses) ? data.guesses : [];
+              applyProgress(gs);
+            })
+            .catch(() => {});
+        } else if (signedIn === false) {
+          const pending = getPendingWordleProgress(date);
+          if (pending?.guesses?.length) applyProgress(pending.guesses);
+        }
       }
     })();
-  }, [mode, endlessLen]);
+  }, [mode, endlessLen, signedIn]);
 
   useEffect(() => {
     const handler = (e: any) => {
@@ -181,7 +195,8 @@ export default function WordlePage() {
     if (current.length !== len) return setMessage("Not enough letters");
     if (!allowed.has(current)) return setMessage("Not in word list");
     const evalRow = evaluateGuess(secret, current);
-    setGuesses((g) => [...g, current]);
+    const nextGuesses = [...guesses, current];
+    setGuesses(nextGuesses);
     setEvaluations((e) => [...e, evalRow]);
     setCurrent("");
     setMessage("");
@@ -203,48 +218,52 @@ export default function WordlePage() {
       return next;
     });
 
+    if (mode === "daily") {
+      const date = getNYTWordleDateString();
+      if (signedIn) {
+        fetch("/api/wordle/progress", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            date,
+            guesses: nextGuesses,
+            cols: DAILY_WORD_LEN,
+          }),
+        }).catch(() => {});
+      } else if (signedIn === false) {
+        queuePendingWordleProgress({ date, guesses: nextGuesses, cols: DAILY_WORD_LEN });
+      }
+    }
+
     if (current === secret) {
       setDone(true);
       setMessage(mode === "daily" ? "You solved today's puzzle!" : "Nice!");
-      // Record the win via serverless API (authenticated by HttpOnly cookies)
       const guessCount = guesses.length + 1;
-      fetch("/api/wordle/win", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ guessCount }),
-      }).catch(() => {});
-      const date = getNYTWordleDateString();
-      fetch("/api/wordle/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          date,
-          guesses: [...guesses, current],
-          cols: DAILY_WORD_LEN,
-        }),
-      }).catch(() => {});
+      if (signedIn) {
+        // Record the win via serverless API (authenticated by HttpOnly cookies)
+        fetch("/api/wordle/win", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ guessCount }),
+        }).catch(() => {});
+      } else {
+        queuePendingWordleEvent({ type: "win", guessCount, createdAt: Date.now() });
+      }
     } else if (guesses.length + 1 >= MAX_ROWS) {
       setDone(true);
       setMessage(`Out of tries. The word was ${secret.toUpperCase()}`);
-      // Record a loss
-      fetch("/api/wordle/loss", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      }).catch(() => {});
-      const date = getNYTWordleDateString();
-      fetch("/api/wordle/progress", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          date,
-          guesses: [...guesses, current],
-          cols: DAILY_WORD_LEN,
-        }),
-      }).catch(() => {});
+      if (signedIn) {
+        // Record a loss
+        fetch("/api/wordle/loss", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        }).catch(() => {});
+      } else {
+        queuePendingWordleEvent({ type: "loss", createdAt: Date.now() });
+      }
     }
   }
 
@@ -257,19 +276,28 @@ export default function WordlePage() {
   const [showStatsModal, setShowStatsModal] = useState(false);
 
   useEffect(() => {
-    if (done) {
-      fetch("/api/wordle/stats", {
-        method: "GET",
-        credentials: "include",
-      })
-        .then((r) => r.json())
-        .then((data) => {
-          setStats(data);
-          if (Platform.OS !== "web") setShowStatsModal(true);
-        })
-        .catch(() => {});
+    if (!done) return;
+    if (!signedIn) {
+      setStats(null);
+      setShowStatsModal(false);
+      return;
     }
-  }, [done]);
+
+    fetch("/api/wordle/stats", {
+      method: "GET",
+      credentials: "include",
+    })
+      .then(async (r) => {
+        if (!r.ok) throw new Error("stats_failed");
+        return r.json();
+      })
+      .then((data) => {
+        if (!data || typeof data !== "object" || !data.distribution) return;
+        setStats(data);
+        if (Platform.OS !== "web") setShowStatsModal(true);
+      })
+      .catch(() => {});
+  }, [done, signedIn]);
 
   function startEndless() {
     setMode("endless");
@@ -283,7 +311,8 @@ export default function WordlePage() {
 
   // Compute web overlay element safely (avoid inline IIFEs in JSX)
   const statsOverlayEl = (() => {
-    if (Platform.OS !== "web" || !stats || !boardContentLayout) return null;
+    if (Platform.OS !== "web" || !signedIn || !stats || !boardContentLayout)
+      return null;
     const boardLeft = boardContentLayout.x;
     const boardCenterY = boardContentLayout.y + boardContentLayout.height / 2;
     const canPlaceLeft = boardLeft - gap - overlayW >= margin;
@@ -417,6 +446,14 @@ export default function WordlePage() {
         <Keyboard onKey={onKey} keyStates={keyStates} />
       ) : (
         <View style={{ gap: 8 }}>
+          {signedIn === false && (
+            <View style={{ gap: 10, alignItems: "center" }}>
+              <Text style={{ color: colors.text, textAlign: "center" }}>
+                Please sign in to save stats.
+              </Text>
+              <GoogleSignInLink />
+            </View>
+          )}
           {mode === "daily" ? (
             <Pressable
               onPress={startEndless}
@@ -460,7 +497,7 @@ export default function WordlePage() {
       )}
 
       {/* Mobile Stats Modal */}
-      {Platform.OS !== "web" && stats && (
+      {Platform.OS !== "web" && signedIn && stats && (
         <Modal
           visible={showStatsModal}
           transparent
