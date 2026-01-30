@@ -15,6 +15,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { FiArrowLeft } from "react-icons/fi";
 import {
   ActivityIndicator,
+  Animated,
   Modal,
   Platform,
   Pressable,
@@ -25,6 +26,8 @@ import {
   useWindowDimensions,
 } from "react-native";
 import StatsChart from "../components/StatsChart";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 function stringifyError(value: any, fallback = "") {
   if (typeof value === "string" || typeof value === "number")
     return String(value);
@@ -241,10 +244,93 @@ export default function ConnectionsPage() {
   const [error, setError] = useState<string>("");
   const [message, setMessage] = useState<string>("");
 
+  const [toastText, setToastText] = useState<string>("");
+  const toastOpacity = React.useRef(new Animated.Value(0)).current;
+  const toastHideTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const shakeAnim = React.useRef(new Animated.Value(0)).current;
+  const shakeTranslateX = useMemo(
+    () =>
+      shakeAnim.interpolate({
+        inputRange: [-1, 1],
+        outputRange: [-6, 6],
+      }),
+    [shakeAnim],
+  );
+
   const [progressLoaded, setProgressLoaded] = useState(false);
   const resultRecordedRef = React.useRef(false);
   const [stats, setStats] = useState<ConnectionsStats | null>(null);
   const [showStatsModal, setShowStatsModal] = useState(false);
+
+  function showToast(text: string) {
+    if (toastHideTimerRef.current) {
+      clearTimeout(toastHideTimerRef.current);
+      toastHideTimerRef.current = null;
+    }
+
+    setToastText(text);
+    toastOpacity.stopAnimation();
+    toastOpacity.setValue(0);
+    Animated.timing(toastOpacity, {
+      toValue: 1,
+      duration: 160,
+      useNativeDriver: true,
+    }).start();
+
+    toastHideTimerRef.current = setTimeout(() => {
+      Animated.timing(toastOpacity, {
+        toValue: 0,
+        duration: 220,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) setToastText("");
+      });
+    }, 1100);
+  }
+
+  function triggerShake() {
+    shakeAnim.stopAnimation();
+    shakeAnim.setValue(0);
+    Animated.sequence([
+      Animated.timing(shakeAnim, {
+        toValue: -1,
+        duration: 45,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnim, {
+        toValue: 1,
+        duration: 45,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnim, {
+        toValue: -1,
+        duration: 45,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnim, {
+        toValue: 1,
+        duration: 45,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnim, {
+        toValue: 0,
+        duration: 45,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }
+
+  useEffect(() => {
+    return () => {
+      if (toastHideTimerRef.current) {
+        clearTimeout(toastHideTimerRef.current);
+        toastHideTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // Only calculate date on the client to avoid SSR/hydration mismatch
   const [date, setDate] = useState<string>("");
@@ -420,9 +506,23 @@ export default function ConnectionsPage() {
       (t) => t.categoryIndex === categoryIndex,
     );
 
+    // "One Away" = 3/4 tiles belong to the same category.
+    const counts = new Map<number, number>();
+    for (const t of selectedTiles) {
+      counts.set(t.categoryIndex, (counts.get(t.categoryIndex) ?? 0) + 1);
+    }
+    const best = Math.max(0, ...Array.from(counts.values()));
+    const isOneAway = best === 3;
+
     if (!isMatch) {
+      triggerShake();
       setMistakesLeft((m) => Math.max(0, m - 1));
-      setMessage("Not a group");
+      if (isOneAway) {
+        showToast("One Away . . .");
+        setMessage("One Away . . .");
+      } else {
+        setMessage("Not a group");
+      }
       return;
     }
 
@@ -538,6 +638,50 @@ export default function ConnectionsPage() {
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background }]}
     >
+      {!!toastText && (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            styles.toastWrap,
+            {
+              opacity: toastOpacity,
+              transform: [
+                {
+                  translateY: toastOpacity.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [-8, 0],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <View
+            style={[
+              styles.toast,
+              {
+                backgroundColor:
+                  colorScheme === "light"
+                    ? "rgba(0,0,0,0.86)"
+                    : "rgba(255,255,255,0.12)",
+                borderColor:
+                  colorScheme === "light"
+                    ? "rgba(255,255,255,0.15)"
+                    : "rgba(255,255,255,0.18)",
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.toastText,
+                { color: colorScheme === "light" ? "#fff" : colors.text },
+              ]}
+            >
+              {toastText}
+            </Text>
+          </View>
+        </Animated.View>
+      )}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <Pressable
@@ -617,7 +761,7 @@ export default function ConnectionsPage() {
             {remainingTiles.map((t) => {
               const isSelected = selected.has(t.content);
               return (
-                <Pressable
+                <AnimatedPressable
                   key={t.content}
                   onPress={() => toggleTile(t.content)}
                   accessibilityRole="button"
@@ -636,6 +780,9 @@ export default function ConnectionsPage() {
                           ? CONNECTIONS_TILE_LIGHT_SELECTED
                           : colors.tint,
                     },
+                    isSelected && {
+                      transform: [{ translateX: shakeTranslateX }],
+                    },
                   ]}
                 >
                   <Text
@@ -651,7 +798,7 @@ export default function ConnectionsPage() {
                   >
                     {t.content}
                   </Text>
-                </Pressable>
+                </AnimatedPressable>
               );
             })}
           </View>
@@ -826,6 +973,26 @@ export default function ConnectionsPage() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 8 },
+  toastWrap: {
+    position: "absolute",
+    top: 10,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  toast: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    maxWidth: 340,
+    shadowColor: "#000",
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  toastText: { fontSize: 13, fontWeight: "900", letterSpacing: 0.2 },
   header: { alignItems: "center", gap: 4, paddingBottom: 6 },
   title: { fontSize: 24, fontWeight: "800" },
   subtitle: { fontSize: 13, opacity: 0.9 },
