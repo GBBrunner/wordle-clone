@@ -48,9 +48,15 @@ export default async function handler(req: Req, res: Res) {
     hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
     hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
   };
-  if (!diagnostics.hasProjectId || !diagnostics.hasClientEmail || !diagnostics.hasPrivateKey) {
+  if (
+    !diagnostics.hasProjectId ||
+    !diagnostics.hasClientEmail ||
+    !diagnostics.hasPrivateKey
+  ) {
     res.setHeader("Content-Type", "application/json");
-    res.status(500).end(JSON.stringify({ error: "server_env_missing", diagnostics }));
+    res
+      .status(500)
+      .end(JSON.stringify({ error: "server_env_missing", diagnostics }));
     return;
   }
 
@@ -65,7 +71,11 @@ export default async function handler(req: Req, res: Res) {
       return;
     }
     try {
-      const docRef = adminDb.collection("users").doc(uid).collection("wordle").doc(date);
+      const docRef = adminDb
+        .collection("users")
+        .doc(uid)
+        .collection("wordle")
+        .doc(date);
       const snap = await docRef.get();
       const data = snap.exists ? snap.data() : {};
       const guesses = Array.isArray(data?.guesses) ? data!.guesses : [];
@@ -82,7 +92,8 @@ export default async function handler(req: Req, res: Res) {
 
   if (req.method === "POST") {
     try {
-      const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
+      const body =
+        typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
       const date: string | undefined = body?.date;
       const guesses: unknown = body?.guesses;
       const cols: unknown = body?.cols;
@@ -91,14 +102,24 @@ export default async function handler(req: Req, res: Res) {
         res.status(400).end(JSON.stringify({ error: "invalid_date" }));
         return;
       }
-      if (!Array.isArray(guesses) || !guesses.every((g) => typeof g === "string")) {
+      if (
+        !Array.isArray(guesses) ||
+        !guesses.every((g) => typeof g === "string")
+      ) {
         res.setHeader("Content-Type", "application/json");
         res.status(400).end(JSON.stringify({ error: "invalid_guesses" }));
         return;
       }
       const colsNum = typeof cols === "number" ? cols : undefined;
-      const docRef = adminDb.collection("users").doc(uid).collection("wordle").doc(date);
-      await docRef.set({ guesses, cols: colsNum, updatedAt: new Date().toISOString() }, { merge: true });
+      const docRef = adminDb
+        .collection("users")
+        .doc(uid)
+        .collection("wordle")
+        .doc(date);
+      await docRef.set(
+        { guesses, cols: colsNum, updatedAt: new Date().toISOString() },
+        { merge: true },
+      );
       res.setHeader("Content-Type", "application/json");
       res.status(200).end(JSON.stringify({ ok: true }));
     } catch (e: any) {

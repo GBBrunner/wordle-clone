@@ -21,7 +21,12 @@ import Board from "../components/Board";
 import Keyboard from "../components/Keyboard";
 import StatsChart from "../components/StatsChart";
 import { getAllowedGuessesSet, getWordsForLength } from "../data/words";
-import { evaluateGuess, getDailyWord, getNYTWordleDateString, randomWord } from "../lib/wordle/engine";
+import {
+    evaluateGuess,
+    getDailyWord,
+    getNYTWordleDateString,
+    randomWord,
+} from "../lib/wordle/engine";
 
 const DAILY_WORD_LEN = 5;
 const MAX_ROWS = 6;
@@ -77,18 +82,26 @@ export default function WordlePage() {
       resetGameState();
       if (mode === "daily") {
         const date = getNYTWordleDateString();
-        fetch(`/api/wordle/progress?date=${date}`, { method: "GET", credentials: "include" })
+        fetch(`/api/wordle/progress?date=${date}`, {
+          method: "GET",
+          credentials: "include",
+        })
           .then((r) => r.json())
           .then((data) => {
-            const gs: string[] = Array.isArray(data?.guesses) ? data.guesses : [];
+            const gs: string[] = Array.isArray(data?.guesses)
+              ? data.guesses
+              : [];
             const cols = DAILY_WORD_LEN;
-            const valid = gs.filter((g) => typeof g === "string" && g.length === cols);
+            const valid = gs.filter(
+              (g) => typeof g === "string" && g.length === cols,
+            );
             if (valid.length > 0) {
               setGuesses(valid);
               const evals = valid.map((g) => evaluateGuess(word, g));
               setEvaluations(evals);
               setKeyStates((prev) => {
-                const next: Record<string, "correct" | "present" | "absent"> = {};
+                const next: Record<string, "correct" | "present" | "absent"> =
+                  {};
                 for (let gi = 0; gi < valid.length; gi++) {
                   const g = valid[gi];
                   const erow = evals[gi];
@@ -205,7 +218,11 @@ export default function WordlePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ date, guesses: [...guesses, current], cols: DAILY_WORD_LEN }),
+        body: JSON.stringify({
+          date,
+          guesses: [...guesses, current],
+          cols: DAILY_WORD_LEN,
+        }),
       }).catch(() => {});
     } else if (guesses.length + 1 >= MAX_ROWS) {
       setDone(true);
@@ -221,7 +238,11 @@ export default function WordlePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ date, guesses: [...guesses, current], cols: DAILY_WORD_LEN }),
+        body: JSON.stringify({
+          date,
+          guesses: [...guesses, current],
+          cols: DAILY_WORD_LEN,
+        }),
       }).catch(() => {});
     }
   }
