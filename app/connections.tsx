@@ -1030,7 +1030,8 @@ export default function ConnectionsPage() {
               </View>
               <View style={{ marginTop: 12 }}>
                 <Text style={{ color: colors.text, textAlign: "center" }}>
-                  Completed: {stats.connections_completed} / {stats.games_played}
+                  Completed: {stats.connections_completed} /{" "}
+                  {stats.games_played}
                 </Text>
                 <Text style={{ color: colors.text, textAlign: "center" }}>
                   Win rate: {stats.winRate}%
