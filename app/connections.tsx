@@ -239,6 +239,7 @@ export default function ConnectionsPage() {
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [solved, setSolved] = useState<SolvedGroup[]>([]);
+  const [revealed, setRevealed] = useState<SolvedGroup[]>([]);
   const [mistakesLeft, setMistakesLeft] = useState<number>(4);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
@@ -264,6 +265,11 @@ export default function ConnectionsPage() {
   const resultRecordedRef = React.useRef(false);
   const [stats, setStats] = useState<ConnectionsStats | null>(null);
   const [showStatsModal, setShowStatsModal] = useState(false);
+
+  const lossRevealStartedRef = React.useRef(false);
+  const revealTimersRef = React.useRef<Array<ReturnType<typeof setTimeout>>>(
+    [],
+  );
 
   function showToast(text: string) {
     if (toastHideTimerRef.current) {
@@ -343,6 +349,9 @@ export default function ConnectionsPage() {
     if (!date) return;
     setProgressLoaded(false);
     resultRecordedRef.current = false;
+    lossRevealStartedRef.current = false;
+    revealTimersRef.current.forEach((t) => clearTimeout(t));
+    revealTimersRef.current = [];
     let cancelled = false;
     (async () => {
       setLoading(true);
@@ -355,6 +364,7 @@ export default function ConnectionsPage() {
         setTiles(buildTiles(data.categories));
         setSelected(new Set());
         setSolved([]);
+        setRevealed([]);
         setMistakesLeft(4);
         setStats(null);
       } catch (e: any) {
@@ -383,8 +393,13 @@ export default function ConnectionsPage() {
             new Set(progress.solvedCategoryIndexes),
           ).sort((a, b) => a - b);
 
+          lossRevealStartedRef.current = false;
+          revealTimersRef.current.forEach((t) => clearTimeout(t));
+          revealTimersRef.current = [];
+
           setMistakesLeft(progress.mistakesLeft);
           setSelected(new Set());
+          setRevealed([]);
           setSolved(
             solvedUnique.map((categoryIndex) => {
               const title = normalizeCategoryTitle(
@@ -446,11 +461,11 @@ export default function ConnectionsPage() {
 
   const solvedContents = useMemo(() => {
     const s = new Set<string>();
-    for (const group of solved) {
+    for (const group of [...solved, ...revealed]) {
       for (const t of group.tiles) s.add(t.content);
     }
     return s;
-  }, [solved]);
+  }, [solved, revealed]);
 
   const remainingTiles = useMemo(
     () => tiles.filter((t) => !solvedContents.has(t.content)),
@@ -542,6 +557,42 @@ export default function ConnectionsPage() {
 
   const isComplete = solved.length === 4;
   const isDone = isComplete || mistakesLeft <= 0;
+
+  // On loss, reveal remaining groups one at a time (2 seconds per group).
+  useEffect(() => {
+    if (!puzzle) return;
+    if (isComplete) return;
+    if (mistakesLeft > 0) return;
+    if (lossRevealStartedRef.current) return;
+    lossRevealStartedRef.current = true;
+
+    const solvedCategoryIndexes = new Set(solved.map((g) => g.categoryIndex));
+    const remainingCategoryIndexes = [0, 1, 2, 3].filter(
+      (i) => !solvedCategoryIndexes.has(i),
+    );
+
+    if (remainingCategoryIndexes.length === 0) return;
+
+    const allTiles = buildTiles(puzzle.categories);
+
+    remainingCategoryIndexes.forEach((categoryIndex, k) => {
+      const timer = setTimeout(() => {
+        const title = normalizeCategoryTitle(
+          puzzle.categories[categoryIndex]?.title ?? "",
+        );
+        const color = GROUP_COLORS[categoryIndex] ?? colors.tint;
+        const groupTiles = allTiles.filter(
+          (t) => t.categoryIndex === categoryIndex,
+        );
+
+        setRevealed((prev) => {
+          if (prev.some((g) => g.categoryIndex === categoryIndex)) return prev;
+          return [...prev, { title, tiles: groupTiles, color, categoryIndex }];
+        });
+      }, 2000 * (k + 1));
+      revealTimersRef.current.push(timer);
+    });
+  }, [puzzle, isComplete, mistakesLeft, solved, colors.tint]);
 
   // Persist progress (signed-in -> API, signed-out -> localStorage).
   useEffect(() => {
@@ -724,9 +775,9 @@ export default function ConnectionsPage() {
             </Text>
           </View>
 
-          {solved.length > 0 ? (
+          {solved.length > 0 || revealed.length > 0 ? (
             <View style={styles.solvedWrap}>
-              {solved.map((g) => (
+              {[...solved, ...revealed].map((g) => (
                 <View
                   key={g.title}
                   style={[
