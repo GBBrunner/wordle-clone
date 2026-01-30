@@ -180,8 +180,13 @@ export function queuePendingWordleProgress(input: {
 }) {
   if (!canUseLocalStorage()) return;
   if (!isValidDate(input.date)) return;
-  if (!Array.isArray(input.guesses) || !input.guesses.every((g) => typeof g === "string")) return;
-  if (!Number.isFinite(input.cols) || input.cols <= 0 || input.cols > 10) return;
+  if (
+    !Array.isArray(input.guesses) ||
+    !input.guesses.every((g) => typeof g === "string")
+  )
+    return;
+  if (!Number.isFinite(input.cols) || input.cols <= 0 || input.cols > 10)
+    return;
 
   const map = readProgressMap();
   map[input.date] = {
@@ -199,7 +204,9 @@ export function queuePendingWordleProgress(input: {
   writeProgressMap(next);
 }
 
-export function getPendingWordleProgress(date: string): PendingWordleProgress | null {
+export function getPendingWordleProgress(
+  date: string,
+): PendingWordleProgress | null {
   if (!isValidDate(date)) return null;
   const map = readProgressMap();
   return map[date] || null;

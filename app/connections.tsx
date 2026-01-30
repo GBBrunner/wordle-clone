@@ -25,8 +25,8 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import StatsChart from "../components/StatsChart";
 import GoogleSignInLink from "../components/GoogleSignInLink";
+import StatsChart from "../components/StatsChart";
 import {
   queuePendingConnectionsEvent,
   queuePendingConnectionsProgress,
@@ -581,20 +581,27 @@ export default function ConnectionsPage() {
     const allTiles = buildTiles(puzzle.categories);
 
     remainingCategoryIndexes.forEach((categoryIndex, k) => {
-      const timer = setTimeout(() => {
-        const title = normalizeCategoryTitle(
-          puzzle.categories[categoryIndex]?.title ?? "",
-        );
-        const color = GROUP_COLORS[categoryIndex] ?? colors.tint;
-        const groupTiles = allTiles.filter(
-          (t) => t.categoryIndex === categoryIndex,
-        );
+      const timer = setTimeout(
+        () => {
+          const title = normalizeCategoryTitle(
+            puzzle.categories[categoryIndex]?.title ?? "",
+          );
+          const color = GROUP_COLORS[categoryIndex] ?? colors.tint;
+          const groupTiles = allTiles.filter(
+            (t) => t.categoryIndex === categoryIndex,
+          );
 
-        setRevealed((prev) => {
-          if (prev.some((g) => g.categoryIndex === categoryIndex)) return prev;
-          return [...prev, { title, tiles: groupTiles, color, categoryIndex }];
-        });
-      }, 2000 * (k + 1));
+          setRevealed((prev) => {
+            if (prev.some((g) => g.categoryIndex === categoryIndex))
+              return prev;
+            return [
+              ...prev,
+              { title, tiles: groupTiles, color, categoryIndex },
+            ];
+          });
+        },
+        2000 * (k + 1),
+      );
       revealTimersRef.current.push(timer);
     });
   }, [puzzle, isComplete, mistakesLeft, solved, colors.tint]);

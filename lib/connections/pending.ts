@@ -169,7 +169,9 @@ function readProgressMap(): Record<string, PendingConnectionsProgress> {
       const v: any = value;
       if (!v || typeof v !== "object") continue;
       const mistakesLeft = clampInt(v.mistakesLeft, 0, 4);
-      const solvedCategoryIndexes = normalizeSolvedIndexes(v.solvedCategoryIndexes);
+      const solvedCategoryIndexes = normalizeSolvedIndexes(
+        v.solvedCategoryIndexes,
+      );
       if (mistakesLeft == null || solvedCategoryIndexes == null) continue;
       out[date] = {
         date,
@@ -202,7 +204,9 @@ export function queuePendingConnectionsProgress(input: {
   if (!canUseLocalStorage()) return;
   if (!isValidDate(input.date)) return;
   const mistakesLeft = clampInt(input.mistakesLeft, 0, 4);
-  const solvedCategoryIndexes = normalizeSolvedIndexes(input.solvedCategoryIndexes);
+  const solvedCategoryIndexes = normalizeSolvedIndexes(
+    input.solvedCategoryIndexes,
+  );
   if (mistakesLeft == null || solvedCategoryIndexes == null) return;
 
   const map = readProgressMap();
@@ -221,7 +225,9 @@ export function queuePendingConnectionsProgress(input: {
   writeProgressMap(next);
 }
 
-export function getPendingConnectionsProgress(date: string): PendingConnectionsProgress | null {
+export function getPendingConnectionsProgress(
+  date: string,
+): PendingConnectionsProgress | null {
   if (!isValidDate(date)) return null;
   const map = readProgressMap();
   return map[date] || null;

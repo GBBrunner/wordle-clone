@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
 import {
-  flushPendingWordleEvents,
-  flushPendingWordleProgresses,
-} from "@/lib/wordle/pending";
-import {
-  flushPendingConnectionsEvents,
-  flushPendingConnectionsProgresses,
+    flushPendingConnectionsEvents,
+    flushPendingConnectionsProgresses,
 } from "@/lib/connections/pending";
+import {
+    flushPendingWordleEvents,
+    flushPendingWordleProgresses,
+} from "@/lib/wordle/pending";
+import { useCallback, useEffect, useState } from "react";
 
 export function useAuth() {
   const [isClient, setIsClient] = useState(false);

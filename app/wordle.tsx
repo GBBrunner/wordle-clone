@@ -30,9 +30,9 @@ import {
     randomWord,
 } from "../lib/wordle/engine";
 import {
-  getPendingWordleProgress,
-  queuePendingWordleEvent,
-  queuePendingWordleProgress,
+    getPendingWordleProgress,
+    queuePendingWordleEvent,
+    queuePendingWordleProgress,
 } from "../lib/wordle/pending";
 
 const DAILY_WORD_LEN = 5;
@@ -91,7 +91,9 @@ export default function WordlePage() {
         const date = getNYTWordleDateString();
         const applyProgress = (gs: string[]) => {
           const cols = DAILY_WORD_LEN;
-          const valid = gs.filter((g) => typeof g === "string" && g.length === cols);
+          const valid = gs.filter(
+            (g) => typeof g === "string" && g.length === cols,
+          );
           if (valid.length === 0) return;
 
           setGuesses(valid);
@@ -135,7 +137,9 @@ export default function WordlePage() {
           })
             .then((r) => r.json())
             .then((data) => {
-              const gs: string[] = Array.isArray(data?.guesses) ? data.guesses : [];
+              const gs: string[] = Array.isArray(data?.guesses)
+                ? data.guesses
+                : [];
               applyProgress(gs);
             })
             .catch(() => {});
@@ -232,7 +236,11 @@ export default function WordlePage() {
           }),
         }).catch(() => {});
       } else if (signedIn === false) {
-        queuePendingWordleProgress({ date, guesses: nextGuesses, cols: DAILY_WORD_LEN });
+        queuePendingWordleProgress({
+          date,
+          guesses: nextGuesses,
+          cols: DAILY_WORD_LEN,
+        });
       }
     }
 
@@ -249,7 +257,11 @@ export default function WordlePage() {
           body: JSON.stringify({ guessCount }),
         }).catch(() => {});
       } else {
-        queuePendingWordleEvent({ type: "win", guessCount, createdAt: Date.now() });
+        queuePendingWordleEvent({
+          type: "win",
+          guessCount,
+          createdAt: Date.now(),
+        });
       }
     } else if (guesses.length + 1 >= MAX_ROWS) {
       setDone(true);
