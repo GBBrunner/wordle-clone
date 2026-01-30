@@ -225,7 +225,9 @@ export default function ConnectionsPage() {
       ) : (
         <>
           <View style={styles.metaRow}>
-            <Text style={[styles.meta, { color: colors.text }]}>Selected: {selected.size}/4</Text>
+            <Text style={[styles.meta, { color: colors.text }]}>
+              Selected: {selected.size}/4
+            </Text>
           </View>
 
           {solved.length > 0 ? (
@@ -295,7 +297,9 @@ export default function ConnectionsPage() {
           </View>
 
           <View style={styles.mistakesRow} accessibilityRole="status">
-            <Text style={[styles.meta, { color: colors.text, marginRight: 8 }]}>Mistakes left</Text>
+            <Text style={[styles.meta, { color: colors.text, marginRight: 8 }]}>
+              Mistakes left
+            </Text>
             {[0, 1, 2, 3].map((i) => {
               const filled = i < mistakesLeft;
               return (
@@ -304,8 +308,15 @@ export default function ConnectionsPage() {
                   style={[
                     styles.mistakeDot,
                     filled
-                      ? { backgroundColor: colors.tint, borderColor: colors.tint }
-                      : { borderColor: colors.icon, backgroundColor: "transparent", opacity: 0.35 },
+                      ? {
+                          backgroundColor: colors.tint,
+                          borderColor: colors.tint,
+                        }
+                      : {
+                          borderColor: colors.icon,
+                          backgroundColor: "transparent",
+                          opacity: 0.35,
+                        },
                   ]}
                 />
               );
