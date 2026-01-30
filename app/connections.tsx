@@ -238,7 +238,12 @@ export default function ConnectionsPage() {
               {solved.map((g) => (
                 <View
                   key={g.title}
-                  style={[styles.solvedGroup, { backgroundColor: g.color }]}
+                  style={[
+                    styles.solvedGroup,
+                    { backgroundColor: g.color },
+                    // Make the solved group span the same width as the 4-column grid
+                    { width: gridWidth, alignSelf: "center" },
+                  ]}
                 >
                   <Text
                     style={[
