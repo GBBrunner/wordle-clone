@@ -7,11 +7,11 @@ import { readableTextOn } from "@/lib/theme/theme";
 // We avoid client Firestore writes to prevent auth/rules issues.
 import React, { useEffect, useRef, useState } from "react";
 import {
+    Modal,
     Platform,
     Pressable,
     SafeAreaView,
     StyleSheet,
-  Modal,
     Text,
     TextInput,
     View,
@@ -47,8 +47,18 @@ export default function WordlePage() {
     Record<string, "correct" | "present" | "absent">
   >({});
   const inputRef = useRef<TextInput | null>(null);
-  const [boardLayout, setBoardLayout] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
-  const [boardContentLayout, setBoardContentLayout] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const [boardLayout, setBoardLayout] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [boardContentLayout, setBoardContentLayout] = useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
   const overlayW = 280;
   const gap = 16;
   const margin = 12;
@@ -208,7 +218,7 @@ export default function WordlePage() {
     );
     const top = boardCenterY - 70;
     return (
-      <View style={[styles.statsOverlay, { left: clampedLeft, top }]}> 
+      <View style={[styles.statsOverlay, { left: clampedLeft, top }]}>
         <StatsChart stats={stats} />
       </View>
     );
@@ -300,13 +310,15 @@ export default function WordlePage() {
         style={styles.boardWrap}
         onLayout={({ nativeEvent }) => {
           const { x, y, width, height } = nativeEvent.layout || ({} as any);
-          if (width && height) setBoardLayout({ x: x || 0, y: y || 0, width, height });
+          if (width && height)
+            setBoardLayout({ x: x || 0, y: y || 0, width, height });
         }}
       >
         <View
           onLayout={({ nativeEvent }) => {
             const { x, y, width, height } = nativeEvent.layout || ({} as any);
-            if (width && height) setBoardContentLayout({ x: x || 0, y: y || 0, width, height });
+            if (width && height)
+              setBoardContentLayout({ x: x || 0, y: y || 0, width, height });
           }}
         >
           <Board
@@ -377,14 +389,31 @@ export default function WordlePage() {
           onRequestClose={() => setShowStatsModal(false)}
         >
           <View style={styles.modalBackdrop}>
-            <View style={[styles.modalCard, { backgroundColor: colors.background }]}> 
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                <Text style={[styles.title, { color: colors.text }]}>Stats</Text>
+            <View
+              style={[styles.modalCard, { backgroundColor: colors.background }]}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={[styles.title, { color: colors.text }]}>
+                  Stats
+                </Text>
                 <Pressable
                   onPress={() => setShowStatsModal(false)}
                   style={[styles.cta, { backgroundColor: colors.tint }]}
                 >
-                  <Text style={[styles.ctaText, { color: readableTextOn(colors.tint) }]}>Close</Text>
+                  <Text
+                    style={[
+                      styles.ctaText,
+                      { color: readableTextOn(colors.tint) },
+                    ]}
+                  >
+                    Close
+                  </Text>
                 </Pressable>
               </View>
               <View style={{ marginTop: 12 }}>
