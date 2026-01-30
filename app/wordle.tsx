@@ -21,7 +21,7 @@ import Board from "../components/Board";
 import Keyboard from "../components/Keyboard";
 import StatsChart from "../components/StatsChart";
 import { getAllowedGuessesSet, getWordsForLength } from "../data/words";
-import { evaluateGuess, getDailyWord, randomWord } from "../lib/wordle/engine";
+import { evaluateGuess, getDailyWord, getNYTWordleDateString, randomWord } from "../lib/wordle/engine";
 
 const DAILY_WORD_LEN = 5;
 const MAX_ROWS = 6;
@@ -75,6 +75,47 @@ export default function WordlePage() {
           : randomWord(words);
       setSecret(word);
       resetGameState();
+      if (mode === "daily") {
+        const date = getNYTWordleDateString();
+        fetch(`/api/wordle/progress?date=${date}`, { method: "GET", credentials: "include" })
+          .then((r) => r.json())
+          .then((data) => {
+            const gs: string[] = Array.isArray(data?.guesses) ? data.guesses : [];
+            const cols = DAILY_WORD_LEN;
+            const valid = gs.filter((g) => typeof g === "string" && g.length === cols);
+            if (valid.length > 0) {
+              setGuesses(valid);
+              const evals = valid.map((g) => evaluateGuess(word, g));
+              setEvaluations(evals);
+              setKeyStates((prev) => {
+                const next: Record<string, "correct" | "present" | "absent"> = {};
+                for (let gi = 0; gi < valid.length; gi++) {
+                  const g = valid[gi];
+                  const erow = evals[gi];
+                  for (let i = 0; i < cols; i++) {
+                    const ch = g[i];
+                    const prevState = next[ch];
+                    const now = erow[i];
+                    if (
+                      now === "correct" ||
+                      (prevState !== "correct" && now === "present") ||
+                      (!prevState && now === "absent")
+                    ) {
+                      next[ch] = now;
+                    }
+                  }
+                }
+                return next;
+              });
+              const last = valid[valid.length - 1];
+              if (last === word) {
+                setDone(true);
+                setMessage("You solved today's puzzle!");
+              }
+            }
+          })
+          .catch(() => {});
+      }
     })();
   }, [mode, endlessLen]);
 
@@ -159,6 +200,13 @@ export default function WordlePage() {
         credentials: "include",
         body: JSON.stringify({ guessCount }),
       }).catch(() => {});
+      const date = getNYTWordleDateString();
+      fetch("/api/wordle/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ date, guesses: [...guesses, current], cols: DAILY_WORD_LEN }),
+      }).catch(() => {});
     } else if (guesses.length + 1 >= MAX_ROWS) {
       setDone(true);
       setMessage(`Out of tries. The word was ${secret.toUpperCase()}`);
@@ -167,6 +215,13 @@ export default function WordlePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
+      }).catch(() => {});
+      const date = getNYTWordleDateString();
+      fetch("/api/wordle/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ date, guesses: [...guesses, current], cols: DAILY_WORD_LEN }),
       }).catch(() => {});
     }
   }
