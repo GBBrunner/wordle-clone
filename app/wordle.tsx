@@ -11,9 +11,11 @@ import {
     Pressable,
     SafeAreaView,
     StyleSheet,
+  Modal,
     Text,
     TextInput,
     View,
+    useWindowDimensions,
 } from "react-native";
 import Board from "../components/Board";
 import Keyboard from "../components/Keyboard";
@@ -30,6 +32,7 @@ type Mode = "daily" | "endless";
 export default function WordlePage() {
   const { colors } = useAppTheme();
   const { signedIn } = useAuth();
+  const { width: winWidth } = useWindowDimensions();
   const [mode, setMode] = useState<Mode>("daily");
   const [endlessLen, setEndlessLen] = useState<number>(5);
   const [secret, setSecret] = useState<string>("");
@@ -44,6 +47,11 @@ export default function WordlePage() {
     Record<string, "correct" | "present" | "absent">
   >({});
   const inputRef = useRef<TextInput | null>(null);
+  const [boardLayout, setBoardLayout] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const [boardContentLayout, setBoardContentLayout] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const overlayW = 280;
+  const gap = 16;
+  const margin = 12;
 
   useEffect(() => {
     (async () => {
@@ -159,6 +167,7 @@ export default function WordlePage() {
     winRate: number;
     distribution: Record<string, number>;
   } | null>(null);
+  const [showStatsModal, setShowStatsModal] = useState(false);
 
   useEffect(() => {
     if (done) {
@@ -167,7 +176,10 @@ export default function WordlePage() {
         credentials: "include",
       })
         .then((r) => r.json())
-        .then((data) => setStats(data))
+        .then((data) => {
+          setStats(data);
+          if (Platform.OS !== "web") setShowStatsModal(true);
+        })
         .catch(() => {});
     }
   }, [done]);
@@ -181,6 +193,26 @@ export default function WordlePage() {
     setSecret(randomWord(words));
     resetGameState();
   }
+
+  // Compute web overlay element safely (avoid inline IIFEs in JSX)
+  const statsOverlayEl = (() => {
+    if (Platform.OS !== "web" || !stats || !boardContentLayout) return null;
+    const boardLeft = boardContentLayout.x;
+    const boardCenterY = boardContentLayout.y + boardContentLayout.height / 2;
+    const canPlaceLeft = boardLeft - gap - overlayW >= margin;
+    if (!canPlaceLeft) return null; // fall back to inline stats
+    const midpointLeft = boardLeft / 2 - overlayW / 2; // halfway between edge (0) and boardLeft
+    const clampedLeft = Math.min(
+      boardLeft - overlayW - gap,
+      Math.max(margin, midpointLeft),
+    );
+    const top = boardCenterY - 70;
+    return (
+      <View style={[styles.statsOverlay, { left: clampedLeft, top }]}> 
+        <StatsChart stats={stats} />
+      </View>
+    );
+  })();
 
   return (
     <SafeAreaView
@@ -264,13 +296,26 @@ export default function WordlePage() {
         )}
       </View>
 
-      <View style={styles.boardWrap}>
-        <Board
-          guesses={guesses}
-          evaluations={evaluations}
-          currentGuess={current}
-          cols={currentLen()}
-        />
+      <View
+        style={styles.boardWrap}
+        onLayout={({ nativeEvent }) => {
+          const { x, y, width, height } = nativeEvent.layout || ({} as any);
+          if (width && height) setBoardLayout({ x: x || 0, y: y || 0, width, height });
+        }}
+      >
+        <View
+          onLayout={({ nativeEvent }) => {
+            const { x, y, width, height } = nativeEvent.layout || ({} as any);
+            if (width && height) setBoardContentLayout({ x: x || 0, y: y || 0, width, height });
+          }}
+        >
+          <Board
+            guesses={guesses}
+            evaluations={evaluations}
+            currentGuess={current}
+            cols={currentLen()}
+          />
+        </View>
       </View>
 
       {!!message && (
@@ -304,7 +349,7 @@ export default function WordlePage() {
               </Text>
             </Pressable>
           )}
-          {stats && <StatsChart stats={stats} />}
+          {/* On native, show stats in a modal */}
         </View>
       )}
 
@@ -322,6 +367,35 @@ export default function WordlePage() {
           blurOnSubmit={false}
         />
       )}
+
+      {/* Mobile Stats Modal */}
+      {Platform.OS !== "web" && stats && (
+        <Modal
+          visible={showStatsModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowStatsModal(false)}
+        >
+          <View style={styles.modalBackdrop}>
+            <View style={[styles.modalCard, { backgroundColor: colors.background }]}> 
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                <Text style={[styles.title, { color: colors.text }]}>Stats</Text>
+                <Pressable
+                  onPress={() => setShowStatsModal(false)}
+                  style={[styles.cta, { backgroundColor: colors.tint }]}
+                >
+                  <Text style={[styles.ctaText, { color: readableTextOn(colors.tint) }]}>Close</Text>
+                </Pressable>
+              </View>
+              <View style={{ marginTop: 12 }}>
+                <StatsChart stats={stats} />
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {statsOverlayEl}
     </SafeAreaView>
   );
 }
@@ -352,4 +426,25 @@ const styles = StyleSheet.create({
   },
   ctaText: { fontWeight: "700" },
   hiddenInput: { height: 0, width: 0 },
+  statsOverlay: {
+    position: "absolute",
+    width: 280,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+  },
+  modalCard: {
+    width: "90%",
+    maxWidth: 420,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 4,
+  },
 });
