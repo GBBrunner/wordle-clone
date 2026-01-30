@@ -1,22 +1,22 @@
 import {
-  fetchConnectionsPuzzle,
-  getNYTConnectionsDateString,
+    fetchConnectionsPuzzle,
+    getNYTConnectionsDateString,
 } from "@/lib/connections/api";
 import type {
-  ConnectionsCategory,
-  ConnectionsPuzzle,
+    ConnectionsCategory,
+    ConnectionsPuzzle,
 } from "@/lib/connections/types";
 import { useAppTheme } from "@/lib/theme/context";
 import { readableTextOn } from "@/lib/theme/theme";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  Pressable,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
+    ActivityIndicator,
+    Pressable,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    View,
+    useWindowDimensions,
 } from "react-native";
 
 type Tile = {
@@ -225,12 +225,7 @@ export default function ConnectionsPage() {
       ) : (
         <>
           <View style={styles.metaRow}>
-            <Text style={[styles.meta, { color: colors.text }]}>
-              Mistakes left: {mistakesLeft}
-            </Text>
-            <Text style={[styles.meta, { color: colors.text }]}>
-              Selected: {selected.size}/4
-            </Text>
+            <Text style={[styles.meta, { color: colors.text }]}>Selected: {selected.size}/4</Text>
           </View>
 
           {solved.length > 0 ? (
@@ -295,6 +290,24 @@ export default function ConnectionsPage() {
                     {t.content}
                   </Text>
                 </Pressable>
+              );
+            })}
+          </View>
+
+          <View style={styles.mistakesRow} accessibilityRole="status">
+            <Text style={[styles.meta, { color: colors.text, marginRight: 8 }]}>Mistakes left</Text>
+            {[0, 1, 2, 3].map((i) => {
+              const filled = i < mistakesLeft;
+              return (
+                <View
+                  key={i}
+                  style={[
+                    styles.mistakeDot,
+                    filled
+                      ? { backgroundColor: colors.tint, borderColor: colors.tint }
+                      : { borderColor: colors.icon, backgroundColor: "transparent", opacity: 0.35 },
+                  ]}
+                />
               );
             })}
           </View>
@@ -422,4 +435,13 @@ const styles = StyleSheet.create({
   },
   controlBtn: { borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 },
   controlText: { fontWeight: "800" },
+  mistakesRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
+    paddingTop: 6,
+    paddingBottom: 6,
+    alignItems: "center",
+  },
+  mistakeDot: { width: 14, height: 14, borderRadius: 14, borderWidth: 1 },
 });
